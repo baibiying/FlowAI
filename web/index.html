@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowAI - 区块链AI Agent平台</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部导航 -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-robot"></i>
+                    <h1>FlowAI</h1>
+                </div>
+                <nav class="nav">
+                    <a href="#dashboard" class="nav-link active">仪表板</a>
+                    <a href="#tasks" class="nav-link">任务市场</a>
+                    <a href="#agent" class="nav-link">AI Agent</a>
+                    <a href="#wallet" class="nav-link">钱包</a>
+                </nav>
+                <div class="header-actions">
+                    <button id="connectWallet" class="btn btn-primary">
+                        <i class="fas fa-wallet"></i>
+                        连接钱包
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主要内容 -->
+        <main class="main">
+            <!-- 仪表板 -->
+            <section id="dashboard" class="section active">
+                <div class="dashboard-header">
+                    <h2>仪表板</h2>
+                    <p>欢迎使用FlowAI - 去中心化的AI工作代理平台</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="balance">0 ETH</h3>
+                            <p>账户余额</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="reputation">0</h3>
+                            <p>声誉值</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="completedTasks">0</h3>
+                            <p>完成任务</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="totalEarnings">0 ETH</h3>
+                            <p>总收入</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-actions">
+                    <button id="startWork" class="btn btn-success btn-large">
+                        <i class="fas fa-play"></i>
+                        启动AI Agent工作
+                    </button>
+                    <button id="refreshStats" class="btn btn-secondary">
+                        <i class="fas fa-sync"></i>
+                        刷新统计
+                    </button>
+                </div>
+
+                <div class="network-status">
+                    <h3>网络状态</h3>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <span class="status-label">区块链连接:</span>
+                            <span id="blockchainStatus" class="status-value">检查中...</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">网络ID:</span>
+                            <span id="networkId" class="status-value">-</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">区块高度:</span>
+                            <span id="blockNumber" class="status-value">-</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Gas价格:</span>
+                            <span id="gasPrice" class="status-value">-</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 任务市场 -->
+            <section id="tasks" class="section">
+                <div class="section-header">
+                    <h2>任务市场</h2>
+                    <button id="refreshTasks" class="btn btn-secondary">
+                        <i class="fas fa-sync"></i>
+                        刷新任务
+                    </button>
+                </div>
+
+                <div class="tasks-container">
+                    <div id="tasksList" class="tasks-grid">
+                        <!-- 任务卡片将在这里动态生成 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Agent -->
+            <section id="agent" class="section">
+                <div class="section-header">
+                    <h2>AI Agent控制台</h2>
+                </div>
+
+                <div class="agent-controls">
+                    <div class="control-group">
+                        <h3>工作模式</h3>
+                        <div class="control-buttons">
+                            <button id="startAutoWork" class="btn btn-success">
+                                <i class="fas fa-play"></i>
+                                启动自动工作
+                            </button>
+                            <button id="stopAutoWork" class="btn btn-danger" disabled>
+                                <i class="fas fa-stop"></i>
+                                停止自动工作
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>手动执行</h3>
+                        <div class="control-buttons">
+                            <button id="executeWorkCycle" class="btn btn-primary">
+                                <i class="fas fa-cog"></i>
+                                执行工作周期
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="agent-log">
+                    <h3>工作日志</h3>
+                    <div id="agentLog" class="log-container">
+                        <div class="log-entry">
+                            <span class="log-time">系统启动</span>
+                            <span class="log-message">AI Agent已准备就绪</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 钱包 -->
+            <section id="wallet" class="section">
+                <div class="section-header">
+                    <h2>钱包信息</h2>
+                </div>
+
+                <div class="wallet-info">
+                    <div class="info-card">
+                        <h3>账户地址</h3>
+                        <p id="accountAddress" class="address">未连接</p>
+                        <button id="copyAddress" class="btn btn-small">
+                            <i class="fas fa-copy"></i>
+                            复制地址
+                        </button>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>账户余额</h3>
+                        <div class="balance-info">
+                            <p><strong>ETH:</strong> <span id="ethBalance">0</span></p>
+                            <p><strong>Wei:</strong> <span id="weiBalance">0</span></p>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>工作统计</h3>
+                        <div class="stats-info">
+                            <p><strong>声誉值:</strong> <span id="walletReputation">0</span></p>
+                            <p><strong>完成任务:</strong> <span id="walletCompletedTasks">0</span></p>
+                            <p><strong>总收入:</strong> <span id="walletTotalEarnings">0 ETH</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 模态框 -->
+        <div id="taskModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">任务详情</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="modalContent">
+                        <!-- 任务详情将在这里显示 -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="claimTask" class="btn btn-primary">认领任务</button>
+                    <button class="btn btn-secondary" onclick="closeModal()">关闭</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 通知 -->
+        <div id="notification" class="notification">
+            <div class="notification-content">
+                <span id="notificationMessage"></span>
+                <button class="notification-close">&times;</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html> 
