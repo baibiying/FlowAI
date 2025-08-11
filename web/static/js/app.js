@@ -385,8 +385,61 @@ class FlowAIApp {
     }
 
     async connectWallet() {
-        // 这里可以集成MetaMask或其他钱包
-        this.showNotification('钱包连接功能开发中...', 'info');
+        try {
+            // 检查是否支持MetaMask
+            if (typeof window.ethereum !== 'undefined') {
+                // 请求连接钱包
+                const accounts = await window.ethereum.request({ 
+                    method: 'eth_requestAccounts' 
+                });
+                
+                if (accounts.length > 0) {
+                    const address = accounts[0];
+                    
+                    // 更新UI显示
+                    const accountAddressElement = document.getElementById('accountAddress');
+                    const connectWalletElement = document.getElementById('connectWallet');
+                    
+                    if (accountAddressElement) {
+                        accountAddressElement.textContent = address;
+                    }
+                    if (connectWalletElement) {
+                        connectWalletElement.textContent = '已连接';
+                        connectWalletElement.disabled = true;
+                    }
+                    
+                    this.showNotification('钱包连接成功！', 'success');
+                    this.addLogEntry('系统', `钱包已连接: ${address.substring(0, 6)}...${address.substring(38)}`);
+                    
+                    // 刷新余额和网络信息
+                    await this.loadBalance();
+                    await this.loadNetworkInfo();
+                }
+            } else {
+                // 如果没有MetaMask，显示模拟连接
+                const mockAddress = '0x' + Math.random().toString(16).substr(2, 40);
+                const accountAddressElement = document.getElementById('accountAddress');
+                const connectWalletElement = document.getElementById('connectWallet');
+                
+                if (accountAddressElement) {
+                    accountAddressElement.textContent = mockAddress;
+                }
+                if (connectWalletElement) {
+                    connectWalletElement.textContent = '已连接';
+                    connectWalletElement.disabled = true;
+                }
+                
+                this.showNotification('模拟钱包连接成功！', 'success');
+                this.addLogEntry('系统', `模拟钱包已连接: ${mockAddress.substring(0, 6)}...${mockAddress.substring(38)}`);
+                
+                // 刷新余额和网络信息
+                await this.loadBalance();
+                await this.loadNetworkInfo();
+            }
+        } catch (error) {
+            console.error('钱包连接失败:', error);
+            this.showNotification('钱包连接失败，请重试', 'error');
+        }
     }
 
     copyAddress() {
