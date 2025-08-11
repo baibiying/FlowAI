@@ -4,7 +4,6 @@ class FlowAIApp {
         this.apiBase = '/api';
         this.currentTask = null;
         this.autoWorkInterval = null;
-        this.claimedTasks = []; // 存储已认领的任务
         this.init();
     }
 
@@ -24,60 +23,14 @@ class FlowAIApp {
         });
 
         // 按钮事件
-        const headerConnectWalletBtn = document.getElementById('headerConnectWallet');
-        if (headerConnectWalletBtn) {
-            headerConnectWalletBtn.addEventListener('click', () => this.connectWallet());
-        }
-        
-        const walletConnectWalletBtn = document.getElementById('connectWallet');
-        if (walletConnectWalletBtn) {
-            walletConnectWalletBtn.addEventListener('click', () => this.connectWallet());
-        }
-        
-        const startWorkBtn = document.getElementById('startWork');
-        if (startWorkBtn) {
-            startWorkBtn.addEventListener('click', () => this.startWork());
-        }
-        
-        const refreshStatsBtn = document.getElementById('refreshStats');
-        if (refreshStatsBtn) {
-            refreshStatsBtn.addEventListener('click', () => this.refreshStats());
-        }
-        
-        const refreshTasksBtn = document.getElementById('refreshTasks');
-        if (refreshTasksBtn) {
-            refreshTasksBtn.addEventListener('click', () => this.loadTasks());
-        }
-        
-        const startAutoWorkBtn = document.getElementById('startAutoWork');
-        if (startAutoWorkBtn) {
-            startAutoWorkBtn.addEventListener('click', () => this.startAutoWork());
-        }
-        
-        const stopAutoWorkBtn = document.getElementById('stopAutoWork');
-        if (stopAutoWorkBtn) {
-            stopAutoWorkBtn.addEventListener('click', () => this.stopAutoWork());
-        }
-        
-        const executeWorkCycleBtn = document.getElementById('executeWorkCycle');
-        if (executeWorkCycleBtn) {
-            executeWorkCycleBtn.addEventListener('click', () => this.executeWorkCycle());
-        }
-        
-        const copyAddressBtn = document.getElementById('copyAddress');
-        if (copyAddressBtn) {
-            copyAddressBtn.addEventListener('click', () => this.copyAddress());
-        }
-        
-        const refreshWalletBtn = document.getElementById('refreshWallet');
-        if (refreshWalletBtn) {
-            refreshWalletBtn.addEventListener('click', () => this.refreshWallet());
-        }
-        
-        const withdrawBtn = document.getElementById('withdrawBtn');
-        if (withdrawBtn) {
-            withdrawBtn.addEventListener('click', () => this.withdrawFunds());
-        }
+        document.getElementById('connectWallet').addEventListener('click', () => this.connectWallet());
+        document.getElementById('startWork').addEventListener('click', () => this.startWork());
+        document.getElementById('refreshStats').addEventListener('click', () => this.refreshStats());
+        document.getElementById('refreshTasks').addEventListener('click', () => this.loadTasks());
+        document.getElementById('startAutoWork').addEventListener('click', () => this.startAutoWork());
+        document.getElementById('stopAutoWork').addEventListener('click', () => this.stopAutoWork());
+        document.getElementById('executeWorkCycle').addEventListener('click', () => this.executeWorkCycle());
+        document.getElementById('copyAddress').addEventListener('click', () => this.copyAddress());
 
         // 模态框事件
         const closeBtn = document.querySelector('.close');
@@ -206,16 +159,12 @@ class FlowAIApp {
             const tasksContainer = document.getElementById('tasksList');
             tasksContainer.innerHTML = '';
 
-            // 过滤掉已认领的任务
-            const claimedTaskIds = this.claimedTasks.map(task => task.id);
-            const availableTasks = tasks.filter(task => !claimedTaskIds.includes(task.id));
-
-            if (availableTasks.length === 0) {
+            if (tasks.length === 0) {
                 tasksContainer.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1 / -1;">当前没有可用的任务</p>';
                 return;
             }
 
-            availableTasks.forEach(task => {
+            tasks.forEach(task => {
                 const taskCard = this.createTaskCard(task);
                 tasksContainer.appendChild(taskCard);
             });
@@ -306,12 +255,9 @@ class FlowAIApp {
             });
 
             if (response.ok) {
-                // 将认领的任务添加到已认领任务数组
-                this.claimedTasks.push(this.currentTask);
-                this.showNotification('任务认领成功！已添加到待执行队列', 'success');
+                this.showNotification('任务认领成功！', 'success');
                 this.closeModal();
                 this.loadTasks(); // 刷新任务列表
-                this.updateClaimedTasksDisplay(); // 更新已认领任务显示
             } else {
                 const error = await response.json();
                 this.showNotification(`认领失败: ${error.detail}`, 'error');
@@ -345,50 +291,19 @@ class FlowAIApp {
         try {
             this.addLogEntry('系统', '开始执行工作周期...');
             console.log('开始执行工作周期...');
-            console.log('当前已认领任务数量:', this.claimedTasks.length);
-            console.log('当前已认领任务:', this.claimedTasks);
             
-            let response;
+            // 第一步：获取可用任务
+            this.addLogEntry('AI Agent', '正在获取可用任务列表...');
             
-            // 检查是否有已认领的任务
-            if (this.claimedTasks.length > 0) {
-                const claimedTaskIds = this.claimedTasks.map(task => task.id);
-                this.addLogEntry('AI Agent', `📋 发现 ${this.claimedTasks.length} 个已认领的任务，优先执行: ${claimedTaskIds.join(', ')}`);
-                console.log('发送已认领任务ID:', claimedTaskIds);
-                
-                // 发送已认领任务信息到后端
-                response = await fetch(`${this.apiBase}/agent/work/sync`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        claimed_tasks: claimedTaskIds
-                    })
-                });
-            } else {
-                this.addLogEntry('AI Agent', '📭 没有已认领的任务，正在获取可用任务列表...');
-                
-                response = await fetch(`${this.apiBase}/agent/work/sync`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        claimed_tasks: []
-                    })
-                });
-            }
+            const response = await fetch(`${this.apiBase}/agent/work/sync`, {
+                method: 'POST'
+            });
 
             const result = await response.json();
             console.log('API返回结果:', result);
 
             if (result.status === 'success') {
                 const rewardEth = (result.reward / 1e18).toFixed(4);
-                
-                // 从已认领任务数组中移除已完成的任务
-                this.claimedTasks = this.claimedTasks.filter(task => task.id !== result.task_id);
-                this.updateClaimedTasksDisplay();
                 
                 // 记录任务认领
                 this.addLogEntry('AI Agent', `✅ 认领任务: ${result.task_title} (任务ID: ${result.task_id})`);
@@ -447,10 +362,6 @@ class FlowAIApp {
         
         this.showNotification('自动工作模式已停止', 'info');
         this.addLogEntry('系统', '停止自动工作模式');
-        
-        // 确保已认领任务和仪表盘数据保持不变
-        console.log('停止自动工作模式，已认领任务数量:', this.claimedTasks.length);
-        console.log('已认领任务:', this.claimedTasks);
     }
 
     async refreshStats() {
@@ -474,149 +385,8 @@ class FlowAIApp {
     }
 
     async connectWallet() {
-        try {
-            // 模拟连接钱包
-            this.showNotification('正在连接钱包...', 'info');
-            
-            // 加载账户信息
-            await this.loadAccountInfo();
-            
-            // 更新钱包状态
-            const headerConnectBtn = document.getElementById('headerConnectWallet');
-            const walletConnectBtn = document.getElementById('connectWallet');
-            
-            if (headerConnectBtn) {
-                headerConnectBtn.textContent = '已连接';
-                headerConnectBtn.disabled = true;
-                headerConnectBtn.classList.remove('btn-primary');
-                headerConnectBtn.classList.add('btn-success');
-            }
-            
-            if (walletConnectBtn) {
-                walletConnectBtn.textContent = '已连接';
-                walletConnectBtn.disabled = true;
-                walletConnectBtn.classList.remove('btn-primary');
-                walletConnectBtn.classList.add('btn-success');
-            }
-            
-            // 启用提现按钮
-            const withdrawBtn = document.getElementById('withdrawBtn');
-            if (withdrawBtn) {
-                withdrawBtn.disabled = false;
-            }
-            
-            this.showNotification('钱包连接成功！', 'success');
-            
-            // 更新最后活动时间
-            this.updateLastActivity();
-            
-        } catch (error) {
-            console.error('连接钱包失败:', error);
-            this.showNotification('连接钱包失败', 'error');
-        }
-    }
-
-    async refreshWallet() {
-        try {
-            this.showNotification('正在刷新钱包信息...', 'info');
-            
-            await Promise.all([
-                this.loadAccountInfo(),
-                this.loadBalance(),
-                this.loadStats(),
-                this.loadNetworkInfo(),
-                this.loadTransactionHistory()
-            ]);
-            
-            this.showNotification('钱包信息已刷新', 'success');
-            this.updateLastActivity();
-            
-        } catch (error) {
-            console.error('刷新钱包失败:', error);
-            this.showNotification('刷新钱包失败', 'error');
-        }
-    }
-
-    async withdrawFunds() {
-        try {
-            const balance = parseFloat(document.getElementById('ethBalance').textContent);
-            
-            if (balance <= 0) {
-                this.showNotification('余额不足，无法提现', 'error');
-                return;
-            }
-            
-            // 这里可以添加提现逻辑
-            this.showNotification('提现功能开发中...', 'info');
-            
-        } catch (error) {
-            console.error('提现失败:', error);
-            this.showNotification('提现失败', 'error');
-        }
-    }
-
-    async loadTransactionHistory() {
-        try {
-            // 获取真实的工人统计信息
-            const response = await fetch(`${this.apiBase}/worker/stats`);
-            const stats = await response.json();
-            
-            const transactionList = document.getElementById('transactionList');
-            if (transactionList) {
-                if (stats.completed_tasks === 0) {
-                    transactionList.innerHTML = '<p style="text-align: center; color: #666;">暂无交易记录</p>';
-                } else {
-                    // 根据完成的任务数量生成交易记录
-                    const transactions = [];
-                    const baseTime = Date.now();
-                    
-                    for (let i = 0; i < stats.completed_tasks; i++) {
-                        const taskId = i + 1;
-                        const reward = (stats.total_earnings / stats.completed_tasks) / 1e18; // 平均奖励
-                        const timestamp = new Date(baseTime - (i * 3600000)).toLocaleString(); // 每小时一个任务
-                        
-                        transactions.push({
-                            id: taskId,
-                            type: 'income',
-                            amount: reward.toFixed(4),
-                            description: `完成任务 #${taskId} - 获得奖励`,
-                            timestamp: timestamp,
-                            status: 'completed'
-                        });
-                    }
-                    
-                    transactionList.innerHTML = '';
-                    transactions.forEach(tx => {
-                        const txItem = document.createElement('div');
-                        txItem.className = `transaction-item transaction-${tx.type}`;
-                        txItem.innerHTML = `
-                            <div class="transaction-info">
-                                <div class="transaction-description">${tx.description}</div>
-                                <div class="transaction-time">${tx.timestamp}</div>
-                            </div>
-                            <div class="transaction-amount">
-                                <span class="amount-value">+${tx.amount} ETH</span>
-                                <span class="transaction-status">${tx.status}</span>
-                            </div>
-                        `;
-                        transactionList.appendChild(txItem);
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('加载交易历史失败:', error);
-            const transactionList = document.getElementById('transactionList');
-            if (transactionList) {
-                transactionList.innerHTML = '<p style="text-align: center; color: #666;">加载交易历史失败</p>';
-            }
-        }
-    }
-
-    updateLastActivity() {
-        const lastActivityElement = document.getElementById('lastActivity');
-        if (lastActivityElement) {
-            lastActivityElement.textContent = new Date().toLocaleString();
-        }
+        // 这里可以集成MetaMask或其他钱包
+        this.showNotification('钱包连接功能开发中...', 'info');
     }
 
     copyAddress() {
@@ -662,37 +432,6 @@ class FlowAIApp {
 
     hideNotification() {
         document.getElementById('notification').style.display = 'none';
-    }
-
-    updateClaimedTasksDisplay() {
-        // 更新已认领任务计数
-        const claimedTasksCount = document.getElementById('claimedTasksCount');
-        if (claimedTasksCount) {
-            claimedTasksCount.textContent = `(${this.claimedTasks.length})`;
-        }
-
-        // 更新已认领任务显示
-        const claimedTasksContainer = document.getElementById('claimedTasksList');
-        if (claimedTasksContainer) {
-            if (this.claimedTasks.length === 0) {
-                claimedTasksContainer.innerHTML = '<p style="text-align: center; color: #666;">暂无已认领的任务</p>';
-            } else {
-                claimedTasksContainer.innerHTML = '';
-                this.claimedTasks.forEach(task => {
-                    const taskItem = document.createElement('div');
-                    taskItem.className = 'claimed-task-item';
-                    const rewardEth = (task.reward / 1e18).toFixed(4);
-                    taskItem.innerHTML = `
-                        <div class="task-info">
-                            <div class="task-title">${task.title}</div>
-                            <div class="task-reward">${rewardEth} ETH</div>
-                        </div>
-                        <div class="task-description">${task.description.substring(0, 100)}...</div>
-                    `;
-                    claimedTasksContainer.appendChild(taskItem);
-                });
-            }
-        }
     }
 }
 

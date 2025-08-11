@@ -1,7 +1,7 @@
 import os
 import asyncio
 from typing import List, Dict, Any, Optional
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -210,25 +210,10 @@ async def start_work_cycle(background_tasks: BackgroundTasks):
         raise HTTPException(status_code=500, detail=f"启动工作周期失败: {str(e)}")
 
 @app.post("/api/agent/work/sync", response_model=WorkResult)
-async def work_cycle_sync(request: Request):
+async def work_cycle_sync():
     """同步执行AI Agent工作周期"""
     try:
-        claimed_tasks = []
-        try:
-            body = await request.json()
-            print(f"🔍 API接收到请求体: {body}")
-            if body and 'claimed_tasks' in body:
-                claimed_tasks = body['claimed_tasks']
-                print(f"🔍 提取到已认领任务: {claimed_tasks}")
-            else:
-                print(f"🔍 请求体中没有claimed_tasks字段")
-        except Exception as e:
-            print(f"🔍 解析请求体失败: {e}")
-            # 如果没有JSON body，使用空列表
-            pass
-        
-        print(f"🔍 最终传递给TaskAgent的claimed_tasks: {claimed_tasks}")
-        result = await task_agent.work_cycle(claimed_tasks)
+        result = await task_agent.work_cycle()
         
         # 确保返回的数据符合WorkResult模型
         work_result = {

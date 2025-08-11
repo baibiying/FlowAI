@@ -272,63 +272,10 @@ class TaskAgent:
             return_messages=True
         )
     
-    async def work_cycle(self, claimed_task_ids: List[int] = None) -> Dict[str, Any]:
+    async def work_cycle(self) -> Dict[str, Any]:
         """执行一个完整的工作周期"""
         try:
-            # 1. 优先处理已认领的任务
-            if claimed_task_ids and len(claimed_task_ids) > 0:
-                print(f"发现已认领的任务: {claimed_task_ids}")
-                
-                for task_id in claimed_task_ids:
-                    task = self.blockchain_client.get_task(task_id)
-                    print(f"检查任务 {task_id}: {task}")
-                    
-                    if task:
-                        # 如果任务还未被认领，先认领
-                        if not task['isClaimed']:
-                            print(f"认领任务 {task_id}")
-                            claim_success = self.blockchain_client.claim_task(task_id)
-                            if not claim_success:
-                                print(f"任务 {task_id} 认领失败，跳过")
-                                continue
-                        
-                        # 执行任务（无论是否已认领，都执行）
-                        print(f"开始执行任务 {task_id}: {task['title']}")
-                        task_result = await self._execute_task(task)
-                        
-                        # 提交结果
-                        print(f"提交任务 {task_id} 的结果")
-                        submit_success = self.blockchain_client.complete_task(
-                            task_id, 
-                            task_result
-                        )
-                        
-                        if submit_success:
-                            print(f"任务 {task_id} 完成成功")
-                            return {
-                                "status": "success",
-                                "task_id": task['id'],
-                                "task_title": task['title'],
-                                "reward": task['reward'],
-                                "result": task_result
-                            }
-                        else:
-                            print(f"任务 {task_id} 提交失败")
-                            return {
-                                "status": "submit_failed",
-                                "message": f"任务 {task_id} 提交失败"
-                            }
-                    else:
-                        print(f"任务 {task_id} 不存在")
-                
-                # 如果所有已认领的任务都处理完了，返回无任务状态
-                return {
-                    "status": "no_tasks",
-                    "message": "所有已认领的任务都已处理完成"
-                }
-            
-            # 2. 如果没有已认领的任务，获取新的可用任务
-            print("没有已认领的任务，获取新的可用任务")
+            # 1. 获取可用任务
             available_tasks = self.blockchain_client.get_available_tasks()
             
             if not available_tasks:
@@ -337,7 +284,7 @@ class TaskAgent:
                     "message": "当前没有可用的任务"
                 }
             
-            # 3. 分析任务并选择最佳任务
+            # 2. 分析任务并选择最佳任务
             selected_task = await self._select_best_task(available_tasks)
             
             if not selected_task:
@@ -346,7 +293,7 @@ class TaskAgent:
                     "message": "没有找到合适的任务"
                 }
             
-            # 4. 认领任务
+            # 3. 认领任务
             claim_success = self.blockchain_client.claim_task(selected_task['id'])
             
             if not claim_success:
@@ -355,10 +302,10 @@ class TaskAgent:
                     "message": "任务认领失败"
                 }
             
-            # 5. 执行任务
+            # 4. 执行任务
             task_result = await self._execute_task(selected_task)
             
-            # 6. 提交结果
+            # 5. 提交结果
             submit_success = self.blockchain_client.complete_task(
                 selected_task['id'], 
                 task_result
@@ -379,7 +326,6 @@ class TaskAgent:
                 }
                 
         except Exception as e:
-            print(f"工作周期执行异常: {e}")
             return {
                 "status": "error",
                 "message": f"工作周期执行失败: {str(e)}"

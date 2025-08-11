@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FlowAI - 区块链AI Agent平台</title>
-    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
-    <link rel="alternate icon" href="/static/favicon.ico">
+    <link rel="icon" type="image/png" href="/static/images/flowpay-logo.png">
+    <link rel="shortcut icon" href="/static/images/flowpay-logo.png">
     <link rel="stylesheet" href="/static/css/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -24,7 +24,7 @@
                     <a href="#wallet" class="nav-link">钱包</a>
                 </nav>
                 <div class="header-actions">
-                    <button id="headerConnectWallet" class="btn btn-primary">
+                    <button id="connectWallet" class="btn btn-primary">
                         <i class="fas fa-wallet"></i>
                         连接钱包
                     </button>
@@ -163,13 +163,6 @@
                     </div>
                 </div>
 
-                <div class="claimed-tasks-section">
-                    <h3>已认领任务队列 <span id="claimedTasksCount">(0)</span></h3>
-                    <div id="claimedTasksList" class="claimed-tasks-container">
-                        <p style="text-align: center; color: #666;">暂无已认领的任务</p>
-                    </div>
-                </div>
-
                 <div class="agent-log">
                     <h3>工作日志</h3>
                     <div id="agentLog" class="log-container">
@@ -185,16 +178,6 @@
             <section id="wallet" class="section">
                 <div class="section-header">
                     <h2>钱包信息</h2>
-                    <div class="wallet-actions">
-                        <button id="connectWallet" class="btn btn-primary">
-                            <i class="fas fa-wallet"></i>
-                            连接钱包
-                        </button>
-                        <button id="refreshWallet" class="btn btn-secondary">
-                            <i class="fas fa-sync"></i>
-                            刷新
-                        </button>
-                    </div>
                 </div>
 
                 <div class="wallet-info">
@@ -213,12 +196,6 @@
                             <p><strong>ETH:</strong> <span id="ethBalance">0</span></p>
                             <p><strong>Wei:</strong> <span id="weiBalance">0</span></p>
                         </div>
-                        <div class="balance-actions">
-                            <button id="withdrawBtn" class="btn btn-success btn-small" disabled>
-                                <i class="fas fa-download"></i>
-                                提现
-                            </button>
-                        </div>
                     </div>
 
                     <div class="info-card">
@@ -227,31 +204,6 @@
                             <p><strong>声誉值:</strong> <span id="walletReputation">0</span></p>
                             <p><strong>完成任务:</strong> <span id="walletCompletedTasks">0</span></p>
                             <p><strong>总收入:</strong> <span id="walletTotalEarnings">0 ETH</span></p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="transaction-history">
-                    <h3>交易历史</h3>
-                    <div id="transactionList" class="transaction-list">
-                        <p style="text-align: center; color: #666;">暂无交易记录</p>
-                    </div>
-                </div>
-
-                <div class="wallet-security">
-                    <h3>安全设置</h3>
-                    <div class="security-info">
-                        <div class="security-item">
-                            <span class="security-label">网络连接:</span>
-                            <span id="walletNetworkStatus" class="security-value">检查中...</span>
-                        </div>
-                        <div class="security-item">
-                            <span class="security-label">私钥状态:</span>
-                            <span class="security-value">已配置</span>
-                        </div>
-                        <div class="security-item">
-                            <span class="security-label">最后活动:</span>
-                            <span id="lastActivity" class="security-value">-</span>
                         </div>
                     </div>
                 </div>
@@ -286,6 +238,6 @@
         </div>
     </div>
 
-    <script src="/static/js/app.js?v=1.1"></script>
+    <script src="/static/js/app.js"></script>
 </body>
 </html> 
