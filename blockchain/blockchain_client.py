@@ -112,7 +112,7 @@ class BlockchainClient:
             # 过滤掉已完成和已认领的任务
             available_tasks = [task_id for task_id in all_tasks if task_id not in BlockchainClient._completed_tasks and task_id not in BlockchainClient._claimed_tasks]
             
-            print(f"🔧 测试模式 - 当前可用任务: {available_tasks} (已完成: {list(BlockchainClient._completed_tasks)})")
+            print(f"🔧 测试模式 - 当前可用任务: {available_tasks} (已完成: {list(BlockchainClient._completed_tasks)}, 已认领: {list(BlockchainClient._claimed_tasks)})")
             return available_tasks
         
         try:
@@ -138,9 +138,8 @@ class BlockchainClient:
                 print(f"🔧 测试模式 - 任务 {task_id} 已完成，返回None")
                 return None  # 已完成的任务返回None
             
-            if task_id in BlockchainClient._claimed_tasks:
-                print(f"🔧 测试模式 - 任务 {task_id} 已被认领，返回None")
-                return None  # 已认领的任务返回None
+            # 注意：已认领的任务仍然可以获取，只是状态会显示为已认领
+            # 这样AI Agent可以继续执行已认领的任务
             
             # 返回模拟任务数据
             mock_tasks = {

@@ -4,6 +4,7 @@ class FlowAIApp {
         this.apiBase = '/api';
         this.currentTask = null;
         this.autoWorkInterval = null;
+        this.claimedTasks = []; // 存储已认领的任务
         this.init();
     }
 
@@ -33,9 +34,20 @@ class FlowAIApp {
         document.getElementById('copyAddress').addEventListener('click', () => this.copyAddress());
 
         // 模态框事件
-        document.querySelector('.close').addEventListener('click', () => this.closeModal());
-        document.getElementById('claimTask').addEventListener('click', () => this.claimCurrentTask());
-        document.getElementById('notificationClose').addEventListener('click', () => this.hideNotification());
+        const closeBtn = document.querySelector('.close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.closeModal());
+        }
+        
+        const claimTaskBtn = document.getElementById('claimTask');
+        if (claimTaskBtn) {
+            claimTaskBtn.addEventListener('click', () => this.claimCurrentTask());
+        }
+        
+        const notificationCloseBtn = document.querySelector('.notification-close');
+        if (notificationCloseBtn) {
+            notificationCloseBtn.addEventListener('click', () => this.hideNotification());
+        }
 
         // 点击模态框外部关闭
         window.addEventListener('click', (e) => {
@@ -148,12 +160,16 @@ class FlowAIApp {
             const tasksContainer = document.getElementById('tasksList');
             tasksContainer.innerHTML = '';
 
-            if (tasks.length === 0) {
+            // 过滤掉已认领的任务
+            const claimedTaskIds = this.claimedTasks.map(task => task.id);
+            const availableTasks = tasks.filter(task => !claimedTaskIds.includes(task.id));
+
+            if (availableTasks.length === 0) {
                 tasksContainer.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1 / -1;">当前没有可用的任务</p>';
                 return;
             }
 
-            tasks.forEach(task => {
+            availableTasks.forEach(task => {
                 const taskCard = this.createTaskCard(task);
                 tasksContainer.appendChild(taskCard);
             });
@@ -244,9 +260,12 @@ class FlowAIApp {
             });
 
             if (response.ok) {
-                this.showNotification('任务认领成功！', 'success');
+                // 将认领的任务添加到已认领任务数组
+                this.claimedTasks.push(this.currentTask);
+                this.showNotification('任务认领成功！已添加到待执行队列', 'success');
                 this.closeModal();
                 this.loadTasks(); // 刷新任务列表
+                this.updateClaimedTasksDisplay(); // 更新已认领任务显示
             } else {
                 const error = await response.json();
                 this.showNotification(`认领失败: ${error.detail}`, 'error');
@@ -280,19 +299,50 @@ class FlowAIApp {
         try {
             this.addLogEntry('系统', '开始执行工作周期...');
             console.log('开始执行工作周期...');
+            console.log('当前已认领任务数量:', this.claimedTasks.length);
+            console.log('当前已认领任务:', this.claimedTasks);
             
-            // 第一步：获取可用任务
-            this.addLogEntry('AI Agent', '正在获取可用任务列表...');
+            let response;
             
-            const response = await fetch(`${this.apiBase}/agent/work/sync`, {
-                method: 'POST'
-            });
+            // 检查是否有已认领的任务
+            if (this.claimedTasks.length > 0) {
+                const claimedTaskIds = this.claimedTasks.map(task => task.id);
+                this.addLogEntry('AI Agent', `📋 发现 ${this.claimedTasks.length} 个已认领的任务，优先执行: ${claimedTaskIds.join(', ')}`);
+                console.log('发送已认领任务ID:', claimedTaskIds);
+                
+                // 发送已认领任务信息到后端
+                response = await fetch(`${this.apiBase}/agent/work/sync`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        claimed_tasks: claimedTaskIds
+                    })
+                });
+            } else {
+                this.addLogEntry('AI Agent', '📭 没有已认领的任务，正在获取可用任务列表...');
+                
+                response = await fetch(`${this.apiBase}/agent/work/sync`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        claimed_tasks: []
+                    })
+                });
+            }
 
             const result = await response.json();
             console.log('API返回结果:', result);
 
             if (result.status === 'success') {
                 const rewardEth = (result.reward / 1e18).toFixed(4);
+                
+                // 从已认领任务数组中移除已完成的任务
+                this.claimedTasks = this.claimedTasks.filter(task => task.id !== result.task_id);
+                this.updateClaimedTasksDisplay();
                 
                 // 记录任务认领
                 this.addLogEntry('AI Agent', `✅ 认领任务: ${result.task_title} (任务ID: ${result.task_id})`);
@@ -351,6 +401,10 @@ class FlowAIApp {
         
         this.showNotification('自动工作模式已停止', 'info');
         this.addLogEntry('系统', '停止自动工作模式');
+        
+        // 确保已认领任务和仪表盘数据保持不变
+        console.log('停止自动工作模式，已认领任务数量:', this.claimedTasks.length);
+        console.log('已认领任务:', this.claimedTasks);
     }
 
     async refreshStats() {
@@ -421,6 +475,37 @@ class FlowAIApp {
 
     hideNotification() {
         document.getElementById('notification').style.display = 'none';
+    }
+
+    updateClaimedTasksDisplay() {
+        // 更新已认领任务计数
+        const claimedTasksCount = document.getElementById('claimedTasksCount');
+        if (claimedTasksCount) {
+            claimedTasksCount.textContent = `(${this.claimedTasks.length})`;
+        }
+
+        // 更新已认领任务显示
+        const claimedTasksContainer = document.getElementById('claimedTasksList');
+        if (claimedTasksContainer) {
+            if (this.claimedTasks.length === 0) {
+                claimedTasksContainer.innerHTML = '<p style="text-align: center; color: #666;">暂无已认领的任务</p>';
+            } else {
+                claimedTasksContainer.innerHTML = '';
+                this.claimedTasks.forEach(task => {
+                    const taskItem = document.createElement('div');
+                    taskItem.className = 'claimed-task-item';
+                    const rewardEth = (task.reward / 1e18).toFixed(4);
+                    taskItem.innerHTML = `
+                        <div class="task-info">
+                            <div class="task-title">${task.title}</div>
+                            <div class="task-reward">${rewardEth} ETH</div>
+                        </div>
+                        <div class="task-description">${task.description.substring(0, 100)}...</div>
+                    `;
+                    claimedTasksContainer.appendChild(taskItem);
+                });
+            }
+        }
     }
 }
 
