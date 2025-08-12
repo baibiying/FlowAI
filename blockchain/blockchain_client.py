@@ -139,8 +139,8 @@ class BlockchainClient:
                 return None  # 已完成的任务返回None
             
             if task_id in BlockchainClient._claimed_tasks:
-                print(f"🔧 测试模式 - 任务 {task_id} 已被认领，返回None")
-                return None  # 已认领的任务返回None
+                print(f"🔧 测试模式 - 任务 {task_id} 已被认领，但仍可获取任务信息")
+                # 已认领的任务仍然返回任务信息，但标记为已认领
             
             # 返回模拟任务数据
             mock_tasks = {

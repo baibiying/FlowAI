@@ -4,6 +4,7 @@ class FlowAIApp {
         this.apiBase = '/api';
         this.currentTask = null;
         this.autoWorkInterval = null;
+        this.claimedTasks = [];
         this.init();
     }
 
@@ -159,12 +160,17 @@ class FlowAIApp {
             const tasksContainer = document.getElementById('tasksList');
             tasksContainer.innerHTML = '';
 
-            if (tasks.length === 0) {
+            // 过滤掉已经认领的任务
+            const availableTasks = tasks.filter(task => 
+                !this.claimedTasks.some(claimedTask => claimedTask.id === task.id)
+            );
+
+            if (availableTasks.length === 0) {
                 tasksContainer.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1 / -1;">当前没有可用的任务</p>';
                 return;
             }
 
-            tasks.forEach(task => {
+            availableTasks.forEach(task => {
                 const taskCard = this.createTaskCard(task);
                 tasksContainer.appendChild(taskCard);
             });
@@ -256,6 +262,11 @@ class FlowAIApp {
 
             if (response.ok) {
                 this.showNotification('任务认领成功！', 'success');
+                
+                // 将认领的任务添加到已认领任务数组
+                this.claimedTasks.push(this.currentTask);
+                this.updateClaimedTasksDisplay();
+                
                 this.closeModal();
                 this.loadTasks(); // 刷新任务列表
             } else {
@@ -266,6 +277,26 @@ class FlowAIApp {
             console.error('认领任务失败:', error);
             this.showNotification('认领任务失败', 'error');
         }
+    }
+
+    updateClaimedTasksDisplay() {
+        const claimedTasksList = document.getElementById('claimedTasksList');
+        if (!claimedTasksList) return;
+
+        if (this.claimedTasks.length === 0) {
+            claimedTasksList.innerHTML = '<p class="no-tasks">暂无已认领的任务</p>';
+            return;
+        }
+
+        claimedTasksList.innerHTML = this.claimedTasks.map(task => `
+            <div class="claimed-task-item">
+                <div class="claimed-task-info">
+                    <div class="claimed-task-title">${task.title || '未知任务'}</div>
+                    <div class="claimed-task-reward">奖励: ${(task.reward / 1e18).toFixed(4)} ETH</div>
+                    <div class="claimed-task-id">任务ID: ${task.id}</div>
+                </div>
+            </div>
+        `).join('');
     }
 
     async startWork() {
@@ -291,13 +322,40 @@ class FlowAIApp {
         try {
             this.addLogEntry('系统', '开始执行工作周期...');
             console.log('开始执行工作周期...');
+            console.log('当前已认领任务数量:', this.claimedTasks.length);
+            console.log('当前已认领任务:', this.claimedTasks);
             
-            // 第一步：获取可用任务
-            this.addLogEntry('AI Agent', '正在获取可用任务列表...');
+            let response;
             
-            const response = await fetch(`${this.apiBase}/agent/work/sync`, {
-                method: 'POST'
-            });
+            // 检查是否有已认领的任务
+            if (this.claimedTasks.length > 0) {
+                const claimedTaskIds = this.claimedTasks.map(task => task.id);
+                this.addLogEntry('AI Agent', `📋 发现 ${this.claimedTasks.length} 个已认领的任务，优先执行: ${claimedTaskIds.join(', ')}`);
+                console.log('发送已认领任务ID:', claimedTaskIds);
+                
+                // 发送已认领任务信息到后端
+                response = await fetch(`${this.apiBase}/agent/work/sync`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        claimed_tasks: claimedTaskIds
+                    })
+                });
+            } else {
+                this.addLogEntry('AI Agent', '📭 没有已认领的任务，正在获取可用任务列表...');
+                
+                response = await fetch(`${this.apiBase}/agent/work/sync`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        claimed_tasks: []
+                    })
+                });
+            }
 
             const result = await response.json();
             console.log('API返回结果:', result);
@@ -314,6 +372,10 @@ class FlowAIApp {
                 // 记录任务完成
                 this.addLogEntry('AI Agent', `🎉 完成任务: ${result.task_title}`);
                 this.addLogEntry('AI Agent', `💰 获得奖励: ${rewardEth} ETH`);
+                
+                // 从已认领任务列表中移除已完成的任务
+                this.claimedTasks = this.claimedTasks.filter(task => task.id !== result.task_id);
+                this.updateClaimedTasksDisplay();
                 
                 this.showNotification(`任务完成！获得 ${rewardEth} ETH`, 'success');
                 console.log('任务完成，刷新统计数据...');
