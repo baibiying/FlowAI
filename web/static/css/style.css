@@ -801,3 +801,49 @@ body {
         height: 250px;
     }
 } 
+
+/* 分离的日志容器 */
+.agent-logs-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.manual-log {
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 20px;
+    padding: 1.5rem;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.auto-log {
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 20px;
+    padding: 1.5rem;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.manual-log h3 {
+    color: #667eea;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.auto-log h3 {
+    color: #28a745;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .agent-logs-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+} 

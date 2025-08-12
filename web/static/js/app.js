@@ -12,6 +12,7 @@ class FlowAIApp {
         this.performanceChart = null; // 添加图表实例
         this.currentChartType = 'earnings'; // 当前图表类型
         this.currentTimeRange = 'day'; // 当前时间范围
+        this.isAutoWorkMode = false; // 添加自动工作模式标识
         
         // 任务标题的多语言映射
         this.taskTitleMap = {
@@ -586,6 +587,8 @@ class FlowAIApp {
     startAutoWork() {
         if (this.autoWorkInterval) return;
 
+        this.isAutoWorkMode = true; // 设置为自动工作模式
+
         this.autoWorkInterval = setInterval(() => {
             this.executeWorkCycle();
         }, 30000); // 每30秒执行一次
@@ -602,6 +605,8 @@ class FlowAIApp {
             clearInterval(this.autoWorkInterval);
             this.autoWorkInterval = null;
         }
+
+        this.isAutoWorkMode = false; // 设置为手动工作模式
 
         document.getElementById('startAutoWork').disabled = false;
         document.getElementById('stopAutoWork').disabled = true;
@@ -911,7 +916,15 @@ class FlowAIApp {
     }
 
     addLogEntry(time, message, params = {}) {
-        const logContainer = document.getElementById('agentLog');
+        // 根据工作模式选择日志容器
+        const logContainerId = this.isAutoWorkMode ? 'autoLog' : 'manualLog';
+        const logContainer = document.getElementById(logContainerId);
+        
+        if (!logContainer) {
+            console.error('日志容器未找到:', logContainerId);
+            return;
+        }
+        
         const logEntry = document.createElement('div');
         logEntry.className = 'log-entry';
         

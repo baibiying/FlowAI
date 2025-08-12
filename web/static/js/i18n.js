@@ -76,6 +76,10 @@ const i18n = {
         'agent.workLog': '工作日志',
         'agent.systemStart': '系统启动',
         'agent.agentReady': 'AI Agent已准备就绪',
+        'agent.manualWorkLog': '手动执行日志',
+        'agent.autoWorkLog': '自动执行日志',
+        'agent.manualReady': '手动执行模式已准备就绪',
+        'agent.autoReady': '自动执行模式已准备就绪',
         
         // 模态框
         'modal.claimTask': '认领任务',
@@ -202,6 +206,10 @@ const i18n = {
         'agent.workLog': 'Work Log',
         'agent.systemStart': 'System Start',
         'agent.agentReady': 'AI Agent Ready',
+        'agent.manualWorkLog': 'Manual Work Log',
+        'agent.autoWorkLog': 'Auto Work Log',
+        'agent.manualReady': 'Manual execution mode ready',
+        'agent.autoReady': 'Auto execution mode ready',
         
         // 模态框
         'modal.claimTask': 'Claim Task',
