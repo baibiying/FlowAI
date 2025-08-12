@@ -606,13 +606,16 @@ class FlowAIApp {
             this.autoWorkInterval = null;
         }
 
-        this.isAutoWorkMode = false; // 设置为手动工作模式
-
         document.getElementById('startAutoWork').disabled = false;
         document.getElementById('stopAutoWork').disabled = true;
         
         this.showNotification('notification.autoWorkStopped', 'info');
+        
+        // 先记录停止日志到自动执行日志区域
         this.addLogEntry('系统', 'log.autoWorkStopped');
+        
+        // 然后设置为手动工作模式
+        this.isAutoWorkMode = false;
     }
 
     async refreshStats() {
