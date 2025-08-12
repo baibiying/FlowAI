@@ -272,10 +272,10 @@ class TaskAgent:
             return_messages=True
         )
     
-    async def work_cycle(self, claimed_task_ids: List[int] = None) -> Dict[str, Any]:
+    async def work_cycle(self, claimed_task_ids: List[int] = None, execution_order: str = 'ai', completed_task_ids: List[int] = None, is_manual_execution: bool = False) -> Dict[str, Any]:
         """执行一个完整的工作周期"""
         try:
-            # 1. 优先处理已认领的任务
+            # 1. 优先处理已认领的任务（无论手动还是自动执行模式）
             if claimed_task_ids and len(claimed_task_ids) > 0:
                 print(f"发现已认领的任务: {claimed_task_ids}")
                 for task_id in claimed_task_ids:
@@ -283,6 +283,13 @@ class TaskAgent:
                     print(f"检查任务 {task_id}: {task}")
                     
                     if task:
+                        print(f"任务 {task_id} 状态 - isClaimed: {task['isClaimed']}, isCompleted: {task['isCompleted']}")
+                        
+                        # 如果任务已完成，跳过
+                        if task['isCompleted']:
+                            print(f"任务 {task_id} 已完成，跳过")
+                            continue
+                        
                         if not task['isClaimed']:
                             print(f"认领任务 {task_id}")
                             claim_success = self.blockchain_client.claim_task(task_id)
@@ -334,6 +341,16 @@ class TaskAgent:
             print("没有已认领的任务，获取新的可用任务")
             available_tasks = self.blockchain_client.get_available_tasks()
             
+            # 排除已完成的任务和已认领的任务
+            if completed_task_ids:
+                available_tasks = [task_id for task_id in available_tasks if task_id not in completed_task_ids]
+                print(f"排除已完成任务后，可用任务: {available_tasks}")
+            
+            # 排除已认领的任务（避免重复执行）
+            if claimed_task_ids:
+                available_tasks = [task_id for task_id in available_tasks if task_id not in claimed_task_ids]
+                print(f"排除已认领任务后，可用任务: {available_tasks}")
+            
             if not available_tasks:
                 return {
                     "status": "no_tasks",
@@ -341,7 +358,7 @@ class TaskAgent:
                 }
             
             # 3. 分析任务并选择最佳任务
-            selected_task = await self._select_best_task(available_tasks)
+            selected_task = await self._select_best_task(available_tasks, execution_order, completed_task_ids)
             
             if not selected_task:
                 return {
@@ -394,24 +411,38 @@ class TaskAgent:
                 "message": f"工作周期执行失败: {str(e)}"
             }
     
-    async def _select_best_task(self, task_ids: List[int]) -> Optional[Dict]:
-        """选择最佳任务"""
-        best_task = None
-        best_score = 0
+    async def _select_best_task(self, task_ids: List[int], execution_order: str = 'ai', completed_task_ids: List[int] = None) -> Optional[Dict]:
+        """根据执行顺序选择最佳任务"""
+        tasks = []
         
+        # 获取所有任务详情
         for task_id in task_ids:
             task = self.blockchain_client.get_task(task_id)
-            if not task:
-                continue
-            
-            # 计算任务评分
-            score = self._calculate_task_score(task)
-            
-            if score > best_score:
-                best_score = score
-                best_task = task
+            if task:
+                tasks.append(task)
         
-        return best_task
+        if not tasks:
+            return None
+        
+        # 根据执行顺序排序任务
+        if execution_order == 'price-high':
+            # 价格从高到低
+            tasks.sort(key=lambda x: x['reward'], reverse=True)
+        elif execution_order == 'price-low':
+            # 价格从低到高
+            tasks.sort(key=lambda x: x['reward'])
+        elif execution_order == 'category':
+            # 按类别排序（按任务类型字母顺序）
+            tasks.sort(key=lambda x: x.get('taskType', '').lower())
+        else:
+            # AI智能排序（默认）
+            # 计算每个任务的评分并排序
+            for task in tasks:
+                task['_score'] = self._calculate_task_score(task)
+            tasks.sort(key=lambda x: x['_score'], reverse=True)
+        
+        # 返回排序后的第一个任务
+        return tasks[0] if tasks else None
     
     def _calculate_task_score(self, task: Dict) -> float:
         """计算任务评分"""

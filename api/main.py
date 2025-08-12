@@ -252,12 +252,25 @@ async def work_cycle_sync(request: Request):
     """同步执行AI Agent工作周期"""
     try:
         claimed_tasks = []
+        execution_order = 'ai'  # 默认AI智能排序
+        completed_tasks = []  # 已完成任务列表
+        is_manual_execution = False  # 默认自动执行
         try:
             body = await request.json()
             print(f"🔍 API接收到请求体: {body}")
-            if body and 'claimed_tasks' in body:
-                claimed_tasks = body['claimed_tasks']
-                print(f"🔍 提取到已认领任务: {claimed_tasks}")
+            if body:
+                if 'claimed_tasks' in body:
+                    claimed_tasks = body['claimed_tasks']
+                    print(f"🔍 提取到已认领任务: {claimed_tasks}")
+                if 'execution_order' in body:
+                    execution_order = body['execution_order']
+                    print(f"🔍 提取到执行顺序: {execution_order}")
+                if 'completed_tasks' in body:
+                    completed_tasks = body['completed_tasks']
+                    print(f"🔍 提取到已完成任务: {completed_tasks}")
+                if 'is_manual_execution' in body:
+                    is_manual_execution = body['is_manual_execution']
+                    print(f"🔍 提取到执行模式: {'手动执行' if is_manual_execution else '自动执行'}")
             else:
                 print(f"🔍 请求体中没有claimed_tasks字段")
         except Exception as e:
@@ -265,8 +278,8 @@ async def work_cycle_sync(request: Request):
             # 如果没有JSON body，使用空列表
             pass
         
-        print(f"🔍 最终传递给TaskAgent的claimed_tasks: {claimed_tasks}")
-        result = await task_agent.work_cycle(claimed_tasks)
+        print(f"🔍 最终传递给TaskAgent的claimed_tasks: {claimed_tasks}, execution_order: {execution_order}, completed_tasks: {completed_tasks}, is_manual_execution: {is_manual_execution}")
+        result = await task_agent.work_cycle(claimed_tasks, execution_order, completed_tasks, is_manual_execution)
         
         # 处理多语言任务标题
         task_title = result.get("task_title", "")

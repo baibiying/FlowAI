@@ -165,6 +165,15 @@
                                 <span data-i18n="agent.stopAutoWork">停止自动工作</span>
                             </button>
                         </div>
+                        <div class="execution-order-controls">
+                            <label for="autoExecutionOrder" data-i18n="agent.executionOrder">执行顺序：</label>
+                            <select id="autoExecutionOrder" class="execution-order-select">
+                                <option value="ai" data-i18n="agent.orderByAI">AI智能排序</option>
+                                <option value="price-high" data-i18n="agent.orderByPriceHigh">价格从高到低</option>
+                                <option value="price-low" data-i18n="agent.orderByPriceLow">价格从低到高</option>
+                                <option value="category" data-i18n="agent.orderByCategory">按类别排序</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="control-group">

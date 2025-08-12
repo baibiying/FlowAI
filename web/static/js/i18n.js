@@ -80,6 +80,11 @@ const i18n = {
         'agent.autoWorkLog': '自动执行日志',
         'agent.manualReady': '手动执行模式已准备就绪',
         'agent.autoReady': '自动执行模式已准备就绪',
+        'agent.executionOrder': '执行顺序：',
+        'agent.orderByAI': 'AI智能排序',
+        'agent.orderByPriceHigh': '价格从高到低',
+        'agent.orderByPriceLow': '价格从低到高',
+        'agent.orderByCategory': '按类别排序',
         
         // 模态框
         'modal.claimTask': '认领任务',
@@ -210,6 +215,11 @@ const i18n = {
         'agent.autoWorkLog': 'Auto Work Log',
         'agent.manualReady': 'Manual execution mode ready',
         'agent.autoReady': 'Auto execution mode ready',
+        'agent.executionOrder': 'Execution Order:',
+        'agent.orderByAI': 'AI Smart Sort',
+        'agent.orderByPriceHigh': 'Price High to Low',
+        'agent.orderByPriceLow': 'Price Low to High',
+        'agent.orderByCategory': 'Sort by Category',
         
         // 模态框
         'modal.claimTask': 'Claim Task',

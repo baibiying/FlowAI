@@ -13,6 +13,8 @@ class FlowAIApp {
         this.currentChartType = 'earnings'; // 当前图表类型
         this.currentTimeRange = 'day'; // 当前时间范围
         this.isAutoWorkMode = false; // 添加自动工作模式标识
+        this.autoExecutionOrder = 'ai'; // 添加自动执行顺序选择
+        this.completedTaskIds = new Set(); // 添加已完成任务的ID集合
         
         // 任务标题的多语言映射
         this.taskTitleMap = {
@@ -77,6 +79,15 @@ class FlowAIApp {
             sortSelect.addEventListener('change', (e) => {
                 this.currentSortBy = e.target.value;
                 this.applySorting();
+            });
+        }
+        
+        // 执行顺序选择器事件
+        const executionOrderSelect = document.getElementById('autoExecutionOrder');
+        if (executionOrderSelect) {
+            executionOrderSelect.addEventListener('change', (e) => {
+                this.autoExecutionOrder = e.target.value;
+                console.log('执行顺序已更改为:', this.autoExecutionOrder);
             });
         }
         
@@ -486,41 +497,37 @@ class FlowAIApp {
             console.log('开始执行工作周期...');
             console.log('当前已认领任务数量:', this.claimedTasks.length);
             console.log('当前已认领任务:', this.claimedTasks);
+            console.log('当前执行顺序:', this.autoExecutionOrder);
             
             let response;
             
+            // 获取已认领任务ID列表
+            const claimedTaskIds = this.claimedTasks.map(task => task.id);
+            
             // 检查是否有已认领的任务
             if (this.claimedTasks.length > 0) {
-                const claimedTaskIds = this.claimedTasks.map(task => task.id);
                 this.addLogEntry('AI Agent', 'log.foundClaimedTasks', { 
                     count: this.claimedTasks.length, 
                     ids: claimedTaskIds.join(', ') 
                 });
                 console.log('发送已认领任务ID:', claimedTaskIds);
-                
-                // 发送已认领任务信息到后端
-                response = await fetch(`${this.apiBase}/agent/work/sync`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        claimed_tasks: claimedTaskIds
-                    })
-                });
             } else {
                 this.addLogEntry('AI Agent', 'log.noClaimedTasks');
-                
-                response = await fetch(`${this.apiBase}/agent/work/sync`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        claimed_tasks: []
-                    })
-                });
             }
+            
+            // 发送请求到后端，始终包含已认领任务列表（用于优先执行或排除）
+            response = await fetch(`${this.apiBase}/agent/work/sync`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    claimed_tasks: claimedTaskIds,
+                    execution_order: this.autoExecutionOrder,
+                    completed_tasks: Array.from(this.completedTaskIds),
+                    is_manual_execution: !this.isAutoWorkMode  // 根据工作模式决定
+                })
+            });
 
             const result = await response.json();
             console.log('API返回结果:', result);
@@ -553,6 +560,9 @@ class FlowAIApp {
                 // 从已认领任务列表中移除已完成的任务
                 this.claimedTasks = this.claimedTasks.filter(task => task.id !== result.task_id);
                 this.updateClaimedTasksDisplay();
+                
+                // 将已完成的任务ID添加到已完成集合中
+                this.completedTaskIds.add(result.task_id);
                 
                 this.showNotification(`notification.taskCompleted`, 'success', { reward: rewardEth });
                 console.log('任务完成，刷新统计数据...');
