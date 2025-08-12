@@ -35,7 +35,7 @@ const i18n = {
         
         // 仪表板
         'dashboard.title': '仪表板',
-        'dashboard.welcome': '欢迎使用FlowAI - 去中心化的AI工作代理平台',
+        'dashboard.welcome': '欢迎使用FlowPay - 去中心化的AI工作代理平台',
         'dashboard.balance': '账户余额',
         'dashboard.reputation': '声誉值',
         'dashboard.completedTasks': '完成任务',
@@ -170,7 +170,7 @@ const i18n = {
         
         // 仪表板
         'dashboard.title': 'Dashboard',
-        'dashboard.welcome': 'Welcome to FlowAI - Decentralized AI Work Agent Platform',
+        'dashboard.welcome': 'Welcome to FlowPay - Decentralized AI Work Agent Platform',
         'dashboard.balance': 'Account Balance',
         'dashboard.reputation': 'Reputation',
         'dashboard.completedTasks': 'Completed Tasks',
