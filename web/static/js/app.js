@@ -9,6 +9,11 @@ class FlowAIApp {
     }
 
     init() {
+        // 初始化国际化
+        if (window.i18n) {
+            window.i18n.init();
+        }
+        
         this.setupEventListeners();
         this.loadInitialData();
         this.setupNavigation();
@@ -90,6 +95,7 @@ class FlowAIApp {
         } catch (error) {
             console.error('加载初始数据失败:', error);
             this.showNotification('加载数据失败，请检查网络连接', 'error');
+            this.addLogEntry('系统', 'log.loadFailed');
         }
     }
 
@@ -133,10 +139,16 @@ class FlowAIApp {
             const response = await fetch(`${this.apiBase}/network/info`);
             const networkInfo = await response.json();
 
-            document.getElementById('blockchainStatus').textContent = networkInfo.is_connected ? '已连接' : '未连接';
+            // 获取国际化文本
+            const connectedText = window.i18n ? window.i18n.t('network.connected') : '已连接';
+            const disconnectedText = window.i18n ? window.i18n.t('network.disconnected') : '未连接';
+            const connectionFailedText = window.i18n ? window.i18n.t('network.connectionFailed') : '连接失败';
+            const gweiText = window.i18n ? window.i18n.t('network.gwei') : 'Gwei';
+
+            document.getElementById('blockchainStatus').textContent = networkInfo.is_connected ? connectedText : disconnectedText;
             document.getElementById('networkId').textContent = networkInfo.chain_id;
             document.getElementById('blockNumber').textContent = networkInfo.block_number;
-            document.getElementById('gasPrice').textContent = `${(networkInfo.gas_price / 1e9).toFixed(2)} Gwei`;
+            document.getElementById('gasPrice').textContent = `${(networkInfo.gas_price / 1e9).toFixed(2)} ${gweiText}`;
 
             // 更新状态颜色
             const statusElement = document.getElementById('blockchainStatus');
@@ -147,14 +159,17 @@ class FlowAIApp {
             }
         } catch (error) {
             console.error('加载网络信息失败:', error);
-            document.getElementById('blockchainStatus').textContent = '连接失败';
+            const connectionFailedText = window.i18n ? window.i18n.t('network.connectionFailed') : '连接失败';
+            document.getElementById('blockchainStatus').textContent = connectionFailedText;
             document.getElementById('blockchainStatus').style.color = '#dc3545';
         }
     }
 
     async loadTasks() {
         try {
-            const response = await fetch(`${this.apiBase}/tasks/available`);
+            // 获取当前语言
+            const currentLang = window.i18n ? window.i18n.currentLanguage : 'zh';
+            const response = await fetch(`${this.apiBase}/tasks/available?lang=${currentLang}`);
             const tasks = await response.json();
 
             const tasksContainer = document.getElementById('tasksList');
@@ -166,7 +181,8 @@ class FlowAIApp {
             );
 
             if (availableTasks.length === 0) {
-                tasksContainer.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1 / -1;">当前没有可用的任务</p>';
+                const noTasksText = window.i18n ? window.i18n.t('tasks.noTasks') : '当前没有可用的任务';
+                tasksContainer.innerHTML = `<p style="text-align: center; color: #666; grid-column: 1 / -1;">${noTasksText}</p>`;
                 return;
             }
 
@@ -176,7 +192,7 @@ class FlowAIApp {
             });
         } catch (error) {
             console.error('加载任务失败:', error);
-            this.showNotification('加载任务失败', 'error');
+            this.showNotification('notification.loadFailed', 'error');
         }
     }
 
@@ -187,6 +203,10 @@ class FlowAIApp {
 
         const rewardEth = (task.reward / 1e18).toFixed(4);
         const deadline = new Date(task.deadline * 1000).toLocaleString();
+        
+        // 获取国际化文本
+        const deadlineText = window.i18n ? window.i18n.t('tasks.deadline') : '截止时间';
+        const publisherText = window.i18n ? window.i18n.t('tasks.publisher') : '发布者';
 
         card.innerHTML = `
             <div class="task-header">
@@ -198,8 +218,8 @@ class FlowAIApp {
             </div>
             <div class="task-description">${task.description.substring(0, 150)}${task.description.length > 150 ? '...' : ''}</div>
             <div class="task-meta">
-                <span>截止时间: ${deadline}</span>
-                <span>发布者: ${task.publisher.substring(0, 8)}...</span>
+                <span>${deadlineText}: ${deadline}</span>
+                <span>${publisherText}: ${task.publisher.substring(0, 8)}...</span>
             </div>
         `;
 
@@ -216,30 +236,39 @@ class FlowAIApp {
 
         const rewardEth = (task.reward / 1e18).toFixed(4);
         const deadline = new Date(task.deadline * 1000).toLocaleString();
+        
+        // 获取国际化文本
+        const taskDescriptionText = window.i18n ? window.i18n.t('modal.taskDescription') : '任务描述';
+        const taskRequirementsText = window.i18n ? window.i18n.t('modal.taskRequirements') : '任务要求';
+        const taskTypeText = window.i18n ? window.i18n.t('modal.taskType') : '任务类型';
+        const rewardText = window.i18n ? window.i18n.t('modal.reward') : '奖励';
+        const deadlineText = window.i18n ? window.i18n.t('modal.deadline') : '截止时间';
+        const publisherText = window.i18n ? window.i18n.t('modal.publisher') : '发布者';
+        const noRequirementsText = window.i18n ? window.i18n.t('modal.noRequirements') : '无特殊要求';
 
         modalContent.innerHTML = `
             <div style="margin-bottom: 1rem;">
-                <strong>任务描述:</strong>
+                <strong>${taskDescriptionText}:</strong>
                 <p>${task.description}</p>
             </div>
             <div style="margin-bottom: 1rem;">
-                <strong>任务要求:</strong>
-                <p>${task.requirements || '无特殊要求'}</p>
+                <strong>${taskRequirementsText}:</strong>
+                <p>${task.requirements || noRequirementsText}</p>
             </div>
             <div style="margin-bottom: 1rem;">
-                <strong>任务类型:</strong>
+                <strong>${taskTypeText}:</strong>
                 <p>${task.task_type}</p>
             </div>
             <div style="margin-bottom: 1rem;">
-                <strong>奖励:</strong>
+                <strong>${rewardText}:</strong>
                 <p>${rewardEth} ETH</p>
             </div>
             <div style="margin-bottom: 1rem;">
-                <strong>截止时间:</strong>
+                <strong>${deadlineText}:</strong>
                 <p>${deadline}</p>
             </div>
             <div>
-                <strong>发布者:</strong>
+                <strong>${publisherText}:</strong>
                 <p>${task.publisher}</p>
             </div>
         `;
@@ -261,7 +290,7 @@ class FlowAIApp {
             });
 
             if (response.ok) {
-                this.showNotification('任务认领成功！', 'success');
+                this.showNotification('notification.taskClaimed', 'success');
                 
                 // 将认领的任务添加到已认领任务数组
                 this.claimedTasks.push(this.currentTask);
@@ -284,19 +313,36 @@ class FlowAIApp {
         if (!claimedTasksList) return;
 
         if (this.claimedTasks.length === 0) {
-            claimedTasksList.innerHTML = '<p class="no-tasks">暂无已认领的任务</p>';
+            const noTasksText = window.i18n ? window.i18n.t('agent.noClaimedTasks') : '暂无已认领的任务';
+            claimedTasksList.innerHTML = `<p class="no-tasks">${noTasksText}</p>`;
             return;
         }
 
-        claimedTasksList.innerHTML = this.claimedTasks.map(task => `
-            <div class="claimed-task-item">
-                <div class="claimed-task-info">
-                    <div class="claimed-task-title">${task.title || '未知任务'}</div>
-                    <div class="claimed-task-reward">奖励: ${(task.reward / 1e18).toFixed(4)} ETH</div>
-                    <div class="claimed-task-id">任务ID: ${task.id}</div>
+        // 获取国际化文本
+        const rewardText = window.i18n ? window.i18n.t('tasks.reward') : '奖励';
+        const taskIdText = window.i18n ? window.i18n.t('tasks.taskId') : '任务ID';
+
+        claimedTasksList.innerHTML = this.claimedTasks.map(task => {
+            // 获取当前语言的任务标题
+            const currentLang = window.i18n ? window.i18n.currentLanguage : 'zh';
+            let taskTitle = task.title || '未知任务';
+            
+            if (typeof task.title === 'object' && task.title[currentLang]) {
+                taskTitle = task.title[currentLang];
+            } else if (typeof task.title === 'string') {
+                taskTitle = task.title;
+            }
+            
+            return `
+                <div class="claimed-task-item">
+                    <div class="claimed-task-info">
+                        <div class="claimed-task-title">${taskTitle}</div>
+                        <div class="claimed-task-reward">${rewardText}: ${(task.reward / 1e18).toFixed(4)} ETH</div>
+                        <div class="claimed-task-id">${taskIdText}: ${task.id}</div>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     async startWork() {
@@ -306,8 +352,8 @@ class FlowAIApp {
             });
 
             if (response.ok) {
-                this.showNotification('AI Agent已开始工作', 'success');
-                this.addLogEntry('系统', 'AI Agent开始工作');
+                this.showNotification('notification.workStarted', 'success');
+                this.addLogEntry('系统', 'log.agentStarted');
             } else {
                 const error = await response.json();
                 this.showNotification(`启动失败: ${error.detail}`, 'error');
@@ -320,7 +366,7 @@ class FlowAIApp {
 
     async executeWorkCycle() {
         try {
-            this.addLogEntry('系统', '开始执行工作周期...');
+            this.addLogEntry('系统', 'log.startingWork');
             console.log('开始执行工作周期...');
             console.log('当前已认领任务数量:', this.claimedTasks.length);
             console.log('当前已认领任务:', this.claimedTasks);
@@ -330,7 +376,10 @@ class FlowAIApp {
             // 检查是否有已认领的任务
             if (this.claimedTasks.length > 0) {
                 const claimedTaskIds = this.claimedTasks.map(task => task.id);
-                this.addLogEntry('AI Agent', `📋 发现 ${this.claimedTasks.length} 个已认领的任务，优先执行: ${claimedTaskIds.join(', ')}`);
+                this.addLogEntry('AI Agent', 'log.foundClaimedTasks', { 
+                    count: this.claimedTasks.length, 
+                    ids: claimedTaskIds.join(', ') 
+                });
                 console.log('发送已认领任务ID:', claimedTaskIds);
                 
                 // 发送已认领任务信息到后端
@@ -344,7 +393,7 @@ class FlowAIApp {
                     })
                 });
             } else {
-                this.addLogEntry('AI Agent', '📭 没有已认领的任务，正在获取可用任务列表...');
+                this.addLogEntry('AI Agent', 'log.noClaimedTasks');
                 
                 response = await fetch(`${this.apiBase}/agent/work/sync`, {
                     method: 'POST',
@@ -363,31 +412,48 @@ class FlowAIApp {
             if (result.status === 'success') {
                 const rewardEth = (result.reward / 1e18).toFixed(4);
                 
+                // 获取当前语言的任务标题
+                const currentLang = window.i18n ? window.i18n.currentLanguage : 'zh';
+                let taskTitle = result.task_title;
+                
+                // 如果当前任务在已认领任务列表中，尝试获取多语言标题
+                const claimedTask = this.claimedTasks.find(task => task.id === result.task_id);
+                if (claimedTask && claimedTask.title) {
+                    if (typeof claimedTask.title === 'object' && claimedTask.title[currentLang]) {
+                        taskTitle = claimedTask.title[currentLang];
+                    } else if (typeof claimedTask.title === 'string') {
+                        taskTitle = claimedTask.title;
+                    }
+                }
+                
                 // 记录任务认领
-                this.addLogEntry('AI Agent', `✅ 认领任务: ${result.task_title} (任务ID: ${result.task_id})`);
+                this.addLogEntry('AI Agent', 'log.taskClaimed', { 
+                    title: taskTitle, 
+                    id: result.task_id 
+                });
                 
                 // 记录任务执行
-                this.addLogEntry('AI Agent', `🔄 开始执行任务: ${result.task_title}`);
+                this.addLogEntry('AI Agent', 'log.taskExecuting', { title: taskTitle });
                 
                 // 记录任务完成
-                this.addLogEntry('AI Agent', `🎉 完成任务: ${result.task_title}`);
-                this.addLogEntry('AI Agent', `💰 获得奖励: ${rewardEth} ETH`);
+                this.addLogEntry('AI Agent', 'log.taskCompleted', { title: taskTitle });
+                this.addLogEntry('AI Agent', 'log.taskReward', { reward: rewardEth });
                 
                 // 从已认领任务列表中移除已完成的任务
                 this.claimedTasks = this.claimedTasks.filter(task => task.id !== result.task_id);
                 this.updateClaimedTasksDisplay();
                 
-                this.showNotification(`任务完成！获得 ${rewardEth} ETH`, 'success');
+                this.showNotification(`notification.taskCompleted`, 'success', { reward: rewardEth });
                 console.log('任务完成，刷新统计数据...');
                 await this.loadStats(); // 等待统计数据刷新完成
                 await this.loadBalance(); // 同时刷新余额
                 console.log('统计数据刷新完成');
             } else if (result.status === 'no_tasks') {
-                this.addLogEntry('AI Agent', '📭 当前没有可用的任务');
-                this.showNotification('当前没有可用的任务', 'info');
+                this.addLogEntry('AI Agent', 'log.noAvailableTasks');
+                this.showNotification('notification.noTasks', 'info');
             } else if (result.status === 'no_suitable_task') {
-                this.addLogEntry('AI Agent', '🔍 没有找到合适的任务');
-                this.showNotification('没有找到合适的任务', 'info');
+                this.addLogEntry('AI Agent', 'log.noSuitableTasks');
+                this.showNotification('notification.noSuitableTask', 'info');
             } else {
                 this.showNotification(result.message, 'info');
                 this.addLogEntry('AI Agent', result.message);
@@ -395,7 +461,7 @@ class FlowAIApp {
         } catch (error) {
             console.error('执行工作周期失败:', error);
             this.showNotification('执行工作周期失败', 'error');
-            this.addLogEntry('系统', '❌ 工作周期执行失败');
+            this.addLogEntry('系统', 'log.workFailed');
         }
     }
 
@@ -409,8 +475,8 @@ class FlowAIApp {
         document.getElementById('startAutoWork').disabled = true;
         document.getElementById('stopAutoWork').disabled = false;
         
-        this.showNotification('自动工作模式已启动', 'success');
-        this.addLogEntry('系统', '启动自动工作模式');
+        this.showNotification('notification.autoWorkStarted', 'success');
+        this.addLogEntry('系统', 'log.autoWorkStarted');
     }
 
     stopAutoWork() {
@@ -422,8 +488,8 @@ class FlowAIApp {
         document.getElementById('startAutoWork').disabled = false;
         document.getElementById('stopAutoWork').disabled = true;
         
-        this.showNotification('自动工作模式已停止', 'info');
-        this.addLogEntry('系统', '停止自动工作模式');
+        this.showNotification('notification.autoWorkStopped', 'info');
+        this.addLogEntry('系统', 'log.autoWorkStopped');
     }
 
     async refreshStats() {
@@ -432,7 +498,7 @@ class FlowAIApp {
             this.loadBalance(),
             this.loadNetworkInfo()
         ]);
-        this.showNotification('统计信息已刷新', 'success');
+        this.showNotification('notification.statsRefreshed', 'success');
     }
 
     async loadAccountInfo() {
@@ -466,12 +532,15 @@ class FlowAIApp {
                         accountAddressElement.textContent = address;
                     }
                     if (connectWalletElement) {
-                        connectWalletElement.textContent = '已连接';
+                        const connectedText = window.i18n ? window.i18n.t('wallet.connected') : '已连接';
+                        connectWalletElement.textContent = connectedText;
                         connectWalletElement.disabled = true;
                     }
                     
-                    this.showNotification('钱包连接成功！', 'success');
-                    this.addLogEntry('系统', `钱包已连接: ${address.substring(0, 6)}...${address.substring(38)}`);
+                    this.showNotification('notification.walletConnected', 'success');
+                    this.addLogEntry('系统', 'log.walletConnected', { 
+                        address: `${address.substring(0, 6)}...${address.substring(38)}` 
+                    });
                     
                     // 刷新余额和网络信息
                     await this.loadBalance();
@@ -487,12 +556,15 @@ class FlowAIApp {
                     accountAddressElement.textContent = mockAddress;
                 }
                 if (connectWalletElement) {
-                    connectWalletElement.textContent = '已连接';
+                    const connectedText = window.i18n ? window.i18n.t('wallet.connected') : '已连接';
+                    connectWalletElement.textContent = connectedText;
                     connectWalletElement.disabled = true;
                 }
                 
-                this.showNotification('模拟钱包连接成功！', 'success');
-                this.addLogEntry('系统', `模拟钱包已连接: ${mockAddress.substring(0, 6)}...${mockAddress.substring(38)}`);
+                this.showNotification('notification.mockWalletConnected', 'success');
+                this.addLogEntry('系统', 'log.walletConnected', { 
+                    address: `${mockAddress.substring(0, 6)}...${mockAddress.substring(38)}` 
+                });
                 
                 // 刷新余额和网络信息
                 await this.loadBalance();
@@ -508,17 +580,24 @@ class FlowAIApp {
         const address = document.getElementById('accountAddress').textContent;
         if (address && address !== '未连接') {
             navigator.clipboard.writeText(address).then(() => {
-                this.showNotification('地址已复制到剪贴板', 'success');
+                this.showNotification('notification.addressCopied', 'success');
+                this.addLogEntry('系统', 'log.addressCopied');
             });
         }
     }
 
-    addLogEntry(time, message) {
+    addLogEntry(time, message, params = {}) {
         const logContainer = document.getElementById('agentLog');
         const logEntry = document.createElement('div');
         logEntry.className = 'log-entry';
         
         const now = new Date().toLocaleTimeString();
+        
+        // 如果message是国际化key，则翻译
+        if (window.i18n && message.startsWith('log.')) {
+            message = window.i18n.t(message, params);
+        }
+        
         logEntry.innerHTML = `
             <span class="log-time">${now}</span>
             <span class="log-message">${message}</span>
@@ -528,9 +607,14 @@ class FlowAIApp {
         logContainer.scrollTop = logContainer.scrollHeight;
     }
 
-    showNotification(message, type = 'info') {
+    showNotification(message, type = 'info', params = {}) {
         const notification = document.getElementById('notification');
         const messageElement = document.getElementById('notificationMessage');
+        
+        // 如果message是国际化key，则翻译
+        if (window.i18n && message.startsWith('notification.')) {
+            message = window.i18n.t(message, params);
+        }
         
         messageElement.textContent = message;
         

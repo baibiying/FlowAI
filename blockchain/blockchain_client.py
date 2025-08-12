@@ -147,8 +147,14 @@ class BlockchainClient:
                 1: {
                     'id': 1,
                     'publisher': '0x1234567890123456789012345678901234567890',
-                    'title': '编写技术博客文章',
-                    'description': '需要一篇关于区块链技术的技术博客文章，字数1000-1500字',
+                    'title': {
+                        'zh': '编写技术博客文章',
+                        'en': 'Write Technical Blog Post'
+                    },
+                    'description': {
+                        'zh': '需要一篇关于区块链技术的技术博客文章，字数1000-1500字',
+                        'en': 'Need a technical blog post about blockchain technology, 1000-1500 words'
+                    },
                     'reward': 1000000000000000000,  # 1 ETH
                     'isCompleted': task_id in BlockchainClient._completed_tasks,
                     'isClaimed': task_id in BlockchainClient._claimed_tasks or task_id in BlockchainClient._completed_tasks,
@@ -156,13 +162,22 @@ class BlockchainClient:
                     'createdAt': 1640995200,
                     'deadline': 1641081600,
                     'taskType': 'content_writing',
-                    'requirements': '技术准确，语言流畅，结构清晰'
+                    'requirements': {
+                        'zh': '技术准确，语言流畅，结构清晰',
+                        'en': 'Technically accurate, fluent language, clear structure'
+                    }
                 },
                 2: {
                     'id': 2,
                     'publisher': '0x2345678901234567890123456789012345678901',
-                    'title': '开发智能合约',
-                    'description': '开发一个简单的ERC-20代币合约，包含基本的转账功能',
+                    'title': {
+                        'zh': '开发智能合约',
+                        'en': 'Develop Smart Contract'
+                    },
+                    'description': {
+                        'zh': '开发一个简单的ERC-20代币合约，包含基本的转账功能',
+                        'en': 'Develop a simple ERC-20 token contract with basic transfer functionality'
+                    },
                     'reward': 2000000000000000000,  # 2 ETH
                     'isCompleted': task_id in BlockchainClient._completed_tasks,
                     'isClaimed': task_id in BlockchainClient._claimed_tasks or task_id in BlockchainClient._completed_tasks,
@@ -170,13 +185,22 @@ class BlockchainClient:
                     'createdAt': 1640995200,
                     'deadline': 1641168000,
                     'taskType': 'programming',
-                    'requirements': '代码规范，注释完整，测试通过'
+                    'requirements': {
+                        'zh': '代码规范，注释完整，测试通过',
+                        'en': 'Code standards, complete comments, tests passed'
+                    }
                 },
                 3: {
                     'id': 3,
                     'publisher': '0x3456789012345678901234567890123456789012',
-                    'title': '设计UI界面',
-                    'description': '为DeFi应用设计现代化的用户界面，包含钱包连接功能',
+                    'title': {
+                        'zh': '设计UI界面',
+                        'en': 'Design UI Interface'
+                    },
+                    'description': {
+                        'zh': '为DeFi应用设计现代化的用户界面，包含钱包连接功能',
+                        'en': 'Design a modern user interface for DeFi application with wallet connection functionality'
+                    },
                     'reward': 1500000000000000000,  # 1.5 ETH
                     'isCompleted': task_id in BlockchainClient._completed_tasks,
                     'isClaimed': task_id in BlockchainClient._claimed_tasks or task_id in BlockchainClient._completed_tasks,
@@ -184,13 +208,22 @@ class BlockchainClient:
                     'createdAt': 1640995200,
                     'deadline': 1641254400,
                     'taskType': 'design',
-                    'requirements': '现代化设计，用户体验良好，响应式布局'
+                    'requirements': {
+                        'zh': '现代化设计，用户体验良好，响应式布局',
+                        'en': 'Modern design, good user experience, responsive layout'
+                    }
                 },
                 4: {
                     'id': 4,
                     'publisher': '0x4567890123456789012345678901234567890123',
-                    'title': '翻译技术文档',
-                    'description': '将英文技术文档翻译成中文，保持专业术语的准确性',
+                    'title': {
+                        'zh': '翻译技术文档',
+                        'en': 'Translate Technical Documentation'
+                    },
+                    'description': {
+                        'zh': '将英文技术文档翻译成中文，保持专业术语的准确性',
+                        'en': 'Translate English technical documentation to Chinese, maintaining accuracy of professional terms'
+                    },
                     'reward': 800000000000000000,  # 0.8 ETH
                     'isCompleted': task_id in BlockchainClient._completed_tasks,
                     'isClaimed': task_id in BlockchainClient._claimed_tasks or task_id in BlockchainClient._completed_tasks,
@@ -198,13 +231,22 @@ class BlockchainClient:
                     'createdAt': 1640995200,
                     'deadline': 1641340800,
                     'taskType': 'translation',
-                    'requirements': '翻译准确，术语统一，语言流畅'
+                    'requirements': {
+                        'zh': '翻译准确，术语统一，语言流畅',
+                        'en': 'Accurate translation, unified terminology, fluent language'
+                    }
                 },
                 5: {
                     'id': 5,
                     'publisher': '0x5678901234567890123456789012345678901234',
-                    'title': '市场调研报告',
-                    'description': '对DeFi市场进行深入调研，分析当前趋势和机会',
+                    'title': {
+                        'zh': '市场调研报告',
+                        'en': 'Market Research Report'
+                    },
+                    'description': {
+                        'zh': '对DeFi市场进行深入调研，分析当前趋势和机会',
+                        'en': 'Conduct in-depth research on DeFi market, analyze current trends and opportunities'
+                    },
                     'reward': 3000000000000000000,  # 3 ETH
                     'isCompleted': task_id in BlockchainClient._completed_tasks,
                     'isClaimed': task_id in BlockchainClient._claimed_tasks or task_id in BlockchainClient._completed_tasks,
@@ -212,7 +254,10 @@ class BlockchainClient:
                     'createdAt': 1640995200,
                     'deadline': 1641427200,
                     'taskType': 'research',
-                    'requirements': '数据准确，分析深入，结论有价值'
+                    'requirements': {
+                        'zh': '数据准确，分析深入，结论有价值',
+                        'en': 'Accurate data, in-depth analysis, valuable conclusions'
+                    }
                 }
             }
             return mock_tasks.get(task_id)

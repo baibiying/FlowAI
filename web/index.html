@@ -18,15 +18,19 @@
                     <img src="/static/images/flowpay-logo.png" alt="FlowPay Logo" class="logo-image">
                 </div>
                 <nav class="nav">
-                    <a href="#dashboard" class="nav-link active">仪表板</a>
-                    <a href="#tasks" class="nav-link">任务市场</a>
-                    <a href="#agent" class="nav-link">AI Agent</a>
-                    <a href="#wallet" class="nav-link">钱包</a>
+                    <a href="#dashboard" class="nav-link active" data-i18n="nav.dashboard">仪表板</a>
+                    <a href="#tasks" class="nav-link" data-i18n="nav.tasks">任务市场</a>
+                    <a href="#agent" class="nav-link" data-i18n="nav.agent">AI Agent</a>
+                    <a href="#wallet" class="nav-link" data-i18n="nav.wallet">钱包</a>
                 </nav>
                 <div class="header-actions">
+                    <button id="languageToggle" class="btn btn-secondary">
+                        <i class="fas fa-globe"></i>
+                        <span data-i18n="lang.en">EN</span>
+                    </button>
                     <button id="connectWallet" class="btn btn-primary">
                         <i class="fas fa-wallet"></i>
-                        连接钱包
+                        <span data-i18n="wallet.connect">连接钱包</span>
                     </button>
                 </div>
             </div>
@@ -37,8 +41,8 @@
             <!-- 仪表板 -->
             <section id="dashboard" class="section active">
                 <div class="dashboard-header">
-                    <h2>仪表板</h2>
-                    <p>欢迎使用FlowAI - 去中心化的AI工作代理平台</p>
+                    <h2 data-i18n="dashboard.title">仪表板</h2>
+                    <p data-i18n="dashboard.welcome">欢迎使用FlowAI - 去中心化的AI工作代理平台</p>
                 </div>
 
                 <div class="stats-grid">
@@ -48,7 +52,7 @@
                         </div>
                         <div class="stat-content">
                             <h3 id="balance">0 ETH</h3>
-                            <p>账户余额</p>
+                            <p data-i18n="dashboard.balance">账户余额</p>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -57,7 +61,7 @@
                         </div>
                         <div class="stat-content">
                             <h3 id="reputation">0</h3>
-                            <p>声誉值</p>
+                            <p data-i18n="dashboard.reputation">声誉值</p>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -66,7 +70,7 @@
                         </div>
                         <div class="stat-content">
                             <h3 id="completedTasks">0</h3>
-                            <p>完成任务</p>
+                            <p data-i18n="dashboard.completedTasks">完成任务</p>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -75,7 +79,7 @@
                         </div>
                         <div class="stat-content">
                             <h3 id="totalEarnings">0 ETH</h3>
-                            <p>总收入</p>
+                            <p data-i18n="dashboard.totalEarnings">总收入</p>
                         </div>
                     </div>
                 </div>
@@ -83,31 +87,31 @@
                 <div class="dashboard-actions">
                     <button id="startWork" class="btn btn-success btn-large">
                         <i class="fas fa-play"></i>
-                        启动AI Agent工作
+                        <span data-i18n="dashboard.startWork">启动AI Agent工作</span>
                     </button>
                     <button id="refreshStats" class="btn btn-secondary">
                         <i class="fas fa-sync"></i>
-                        刷新统计
+                        <span data-i18n="dashboard.refreshStats">刷新统计</span>
                     </button>
                 </div>
 
                 <div class="network-status">
-                    <h3>网络状态</h3>
+                    <h3 data-i18n="dashboard.networkStatus">网络状态</h3>
                     <div class="status-grid">
                         <div class="status-item">
-                            <span class="status-label">区块链连接:</span>
-                            <span id="blockchainStatus" class="status-value">检查中...</span>
+                            <span class="status-label" data-i18n="dashboard.blockchainConnection">区块链连接:</span>
+                            <span id="blockchainStatus" class="status-value" data-i18n="dashboard.checking">检查中...</span>
                         </div>
                         <div class="status-item">
-                            <span class="status-label">网络ID:</span>
+                            <span class="status-label" data-i18n="dashboard.networkId">网络ID:</span>
                             <span id="networkId" class="status-value">-</span>
                         </div>
                         <div class="status-item">
-                            <span class="status-label">区块高度:</span>
+                            <span class="status-label" data-i18n="dashboard.blockNumber">区块高度:</span>
                             <span id="blockNumber" class="status-value">-</span>
                         </div>
                         <div class="status-item">
-                            <span class="status-label">Gas价格:</span>
+                            <span class="status-label" data-i18n="dashboard.gasPrice">Gas价格:</span>
                             <span id="gasPrice" class="status-value">-</span>
                         </div>
                     </div>
@@ -117,10 +121,10 @@
             <!-- 任务市场 -->
             <section id="tasks" class="section">
                 <div class="section-header">
-                    <h2>任务市场</h2>
+                    <h2 data-i18n="tasks.title">任务市场</h2>
                     <button id="refreshTasks" class="btn btn-secondary">
                         <i class="fas fa-sync"></i>
-                        刷新任务
+                        <span data-i18n="tasks.refresh">刷新任务</span>
                     </button>
                 </div>
 
@@ -134,48 +138,48 @@
             <!-- AI Agent -->
             <section id="agent" class="section">
                 <div class="section-header">
-                    <h2>AI Agent控制台</h2>
+                    <h2 data-i18n="agent.title">AI Agent控制台</h2>
                 </div>
 
                 <div class="agent-controls">
                     <div class="control-group">
-                        <h3>工作模式</h3>
+                        <h3 data-i18n="agent.workMode">工作模式</h3>
                         <div class="control-buttons">
                             <button id="startAutoWork" class="btn btn-success">
                                 <i class="fas fa-play"></i>
-                                启动自动工作
+                                <span data-i18n="agent.startAutoWork">启动自动工作</span>
                             </button>
                             <button id="stopAutoWork" class="btn btn-danger" disabled>
                                 <i class="fas fa-stop"></i>
-                                停止自动工作
+                                <span data-i18n="agent.stopAutoWork">停止自动工作</span>
                             </button>
                         </div>
                     </div>
 
                     <div class="control-group">
-                        <h3>手动执行</h3>
+                        <h3 data-i18n="agent.manualExecution">手动执行</h3>
                         <div class="control-buttons">
                             <button id="executeWorkCycle" class="btn btn-primary">
                                 <i class="fas fa-cog"></i>
-                                执行工作周期
+                                <span data-i18n="agent.executeWorkCycle">执行工作周期</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
                 <div class="claimed-tasks-section">
-                    <h3>已认领任务</h3>
+                    <h3 data-i18n="agent.claimedTasks">已认领任务</h3>
                     <div id="claimedTasksList" class="claimed-tasks-list">
-                        <p class="no-tasks">暂无已认领的任务</p>
+                        <p class="no-tasks" data-i18n="agent.noClaimedTasks">暂无已认领的任务</p>
                     </div>
                 </div>
 
                 <div class="agent-log">
-                    <h3>工作日志</h3>
+                    <h3 data-i18n="agent.workLog">工作日志</h3>
                     <div id="agentLog" class="log-container">
                         <div class="log-entry">
                             <span class="log-time">系统启动</span>
-                            <span class="log-message">AI Agent已准备就绪</span>
+                            <span class="log-message" data-i18n="agent.agentReady">AI Agent已准备就绪</span>
                         </div>
                     </div>
                 </div>
@@ -184,21 +188,21 @@
             <!-- 钱包 -->
             <section id="wallet" class="section">
                 <div class="section-header">
-                    <h2>钱包信息</h2>
+                    <h2 data-i18n="wallet.title">钱包信息</h2>
                 </div>
 
                 <div class="wallet-info">
                     <div class="info-card">
-                        <h3>账户地址</h3>
-                        <p id="accountAddress" class="address">未连接</p>
+                        <h3 data-i18n="wallet.accountAddress">账户地址</h3>
+                        <p id="accountAddress" class="address" data-i18n="wallet.notConnected">未连接</p>
                         <button id="copyAddress" class="btn btn-small">
                             <i class="fas fa-copy"></i>
-                            复制地址
+                            <span data-i18n="wallet.copyAddress">复制地址</span>
                         </button>
                     </div>
 
                     <div class="info-card">
-                        <h3>账户余额</h3>
+                        <h3 data-i18n="wallet.accountBalance">账户余额</h3>
                         <div class="balance-info">
                             <p><strong>ETH:</strong> <span id="ethBalance">0</span></p>
                             <p><strong>Wei:</strong> <span id="weiBalance">0</span></p>
@@ -206,11 +210,11 @@
                     </div>
 
                     <div class="info-card">
-                        <h3>工作统计</h3>
+                        <h3 data-i18n="wallet.workStats">工作统计</h3>
                         <div class="stats-info">
-                            <p><strong>声誉值:</strong> <span id="walletReputation">0</span></p>
-                            <p><strong>完成任务:</strong> <span id="walletCompletedTasks">0</span></p>
-                            <p><strong>总收入:</strong> <span id="walletTotalEarnings">0 ETH</span></p>
+                            <p><strong data-i18n="wallet.reputation">声誉值:</strong> <span id="walletReputation">0</span></p>
+                            <p><strong data-i18n="wallet.completedTasks">完成任务:</strong> <span id="walletCompletedTasks">0</span></p>
+                            <p><strong data-i18n="wallet.totalEarnings">总收入:</strong> <span id="walletTotalEarnings">0 ETH</span></p>
                         </div>
                     </div>
                 </div>
@@ -230,8 +234,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button id="claimTask" class="btn btn-primary">认领任务</button>
-                    <button class="btn btn-secondary" onclick="closeModal()">关闭</button>
+                    <button id="claimTask" class="btn btn-primary" data-i18n="modal.claimTask">认领任务</button>
+                    <button class="btn btn-secondary" onclick="closeModal()" data-i18n="modal.close">关闭</button>
                 </div>
             </div>
         </div>
@@ -245,6 +249,7 @@
         </div>
     </div>
 
+    <script src="/static/js/i18n.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
 </html> 

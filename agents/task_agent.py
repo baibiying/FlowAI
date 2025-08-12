@@ -302,10 +302,16 @@ class TaskAgent:
                             
                             if submit_success:
                                 print(f"任务 {task_id} 完成成功")
+                                # 处理多语言任务标题
+                                task_title = task['title']
+                                if isinstance(task_title, dict):
+                                    # 默认使用中文，如果没有则使用第一个可用的语言
+                                    task_title = task_title.get('zh', list(task_title.values())[0] if task_title else "")
+                                
                                 return {
                                     "status": "success",
                                     "task_id": task['id'],
-                                    "task_title": task['title'],
+                                    "task_title": task_title,
                                     "reward": task['reward'],
                                     "result": task_result
                                 }
@@ -362,10 +368,16 @@ class TaskAgent:
             )
             
             if submit_success:
+                # 处理多语言任务标题
+                task_title = selected_task['title']
+                if isinstance(task_title, dict):
+                    # 默认使用中文，如果没有则使用第一个可用的语言
+                    task_title = task_title.get('zh', list(task_title.values())[0] if task_title else "")
+                
                 return {
                     "status": "success",
                     "task_id": selected_task['id'],
-                    "task_title": selected_task['title'],
+                    "task_title": task_title,
                     "reward": selected_task['reward'],
                     "result": task_result
                 }

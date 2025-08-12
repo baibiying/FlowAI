@@ -101,7 +101,7 @@ async def health_check():
         }
 
 @app.get("/api/tasks/available", response_model=List[TaskInfo])
-async def get_available_tasks():
+async def get_available_tasks(lang: str = 'zh'):
     """获取可用任务列表"""
     try:
         available_task_ids = blockchain_client.get_available_tasks()
@@ -110,13 +110,26 @@ async def get_available_tasks():
         for task_id in available_task_ids:
             task_data = blockchain_client.get_task(task_id)
             if task_data:
+                # 处理多语言内容
+                title = task_data['title']
+                description = task_data['description']
+                requirements = task_data.get('requirements', '')
+                
+                # 如果是多语言格式，选择对应语言
+                if isinstance(title, dict):
+                    title = title.get(lang, title.get('zh', str(title)))
+                if isinstance(description, dict):
+                    description = description.get(lang, description.get('zh', str(description)))
+                if isinstance(requirements, dict):
+                    requirements = requirements.get(lang, requirements.get('zh', str(requirements)))
+                
                 task_info = TaskInfo(
                     id=task_data['id'],
-                    title=task_data['title'],
-                    description=task_data['description'],
+                    title=title,
+                    description=description,
                     reward=task_data['reward'],
                     task_type=task_data.get('taskType', 'general'),
-                    requirements=task_data.get('requirements', ''),
+                    requirements=requirements,
                     deadline=task_data['deadline'],
                     publisher=task_data['publisher'],
                     is_claimed=task_data['isClaimed'],
@@ -230,12 +243,18 @@ async def work_cycle_sync(request: Request):
         print(f"🔍 最终传递给TaskAgent的claimed_tasks: {claimed_tasks}")
         result = await task_agent.work_cycle(claimed_tasks)
         
+        # 处理多语言任务标题
+        task_title = result.get("task_title", "")
+        if isinstance(task_title, dict):
+            # 默认使用中文，如果没有则使用第一个可用的语言
+            task_title = task_title.get('zh', list(task_title.values())[0] if task_title else "")
+        
         # 确保返回的数据符合WorkResult模型
         work_result = {
             "status": result.get("status", "unknown"),
             "message": result.get("message", ""),
             "task_id": result.get("task_id"),
-            "task_title": result.get("task_title"),
+            "task_title": task_title,
             "reward": result.get("reward"),
             "result": result.get("result")
         }
