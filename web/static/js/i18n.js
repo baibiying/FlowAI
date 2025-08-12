@@ -51,6 +51,11 @@ const i18n = {
         'tasks.publisher': '发布者',
         'tasks.reward': '奖励',
         'tasks.taskId': '任务ID',
+        'tasks.sortBy': '排序方式:',
+        'tasks.sortDefault': '默认排序',
+        'tasks.sortPriceHigh': '价格从高到低',
+        'tasks.sortPriceLow': '价格从低到高',
+        'tasks.sortCategory': '按类别排序',
         
         // AI Agent
         'agent.title': 'AI Agent控制台',
@@ -165,6 +170,11 @@ const i18n = {
         'tasks.publisher': 'Publisher',
         'tasks.reward': 'Reward',
         'tasks.taskId': 'Task ID',
+        'tasks.sortBy': 'Sort by:',
+        'tasks.sortDefault': 'Default',
+        'tasks.sortPriceHigh': 'Price High to Low',
+        'tasks.sortPriceLow': 'Price Low to High',
+        'tasks.sortCategory': 'By Category',
         
         // AI Agent
         'agent.title': 'AI Agent Console',
@@ -250,6 +260,7 @@ const i18n = {
             window.flowAIApp.loadNetworkInfo();
             window.flowAIApp.updateClaimedTasksDisplay();
             window.flowAIApp.updateWalletDisplay(); // 更新钱包显示状态
+            window.flowAIApp.applySorting(); // 重新应用排序
         }
     },
     

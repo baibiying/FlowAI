@@ -7,6 +7,8 @@ class FlowAIApp {
         this.claimedTasks = [];
         this.walletConnected = false; // 添加钱包连接状态
         this.walletAddress = null; // 添加钱包地址
+        this.currentSortBy = 'default'; // 添加当前排序方式
+        this.allTasks = []; // 添加所有任务的缓存
         
         // 任务标题的多语言映射
         this.taskTitleMap = {
@@ -64,6 +66,15 @@ class FlowAIApp {
         document.getElementById('stopAutoWork').addEventListener('click', () => this.stopAutoWork());
         document.getElementById('executeWorkCycle').addEventListener('click', () => this.executeWorkCycle());
         document.getElementById('copyAddress').addEventListener('click', () => this.copyAddress());
+        
+        // 排序选择器事件
+        const sortSelect = document.getElementById('sortBy');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', (e) => {
+                this.currentSortBy = e.target.value;
+                this.applySorting();
+            });
+        }
 
         // 模态框事件
         const closeBtn = document.querySelector('.close');
@@ -199,28 +210,56 @@ class FlowAIApp {
             const response = await fetch(`${this.apiBase}/tasks/available?lang=${currentLang}`);
             const tasks = await response.json();
 
-            const tasksContainer = document.getElementById('tasksList');
-            tasksContainer.innerHTML = '';
+            // 缓存所有任务
+            this.allTasks = tasks;
 
-            // 过滤掉已经认领的任务
-            const availableTasks = tasks.filter(task => 
-                !this.claimedTasks.some(claimedTask => claimedTask.id === task.id)
-            );
-
-            if (availableTasks.length === 0) {
-                const noTasksText = window.i18n ? window.i18n.t('tasks.noTasks') : '当前没有可用的任务';
-                tasksContainer.innerHTML = `<p style="text-align: center; color: #666; grid-column: 1 / -1;">${noTasksText}</p>`;
-                return;
-            }
-
-            availableTasks.forEach(task => {
-                const taskCard = this.createTaskCard(task);
-                tasksContainer.appendChild(taskCard);
-            });
+            // 应用排序和过滤
+            this.applySorting();
         } catch (error) {
             console.error('加载任务失败:', error);
             this.showNotification('notification.loadFailed', 'error');
         }
+    }
+
+    // 应用排序和显示任务
+    applySorting() {
+        const tasksContainer = document.getElementById('tasksList');
+        tasksContainer.innerHTML = '';
+
+        // 过滤掉已经认领的任务
+        let availableTasks = this.allTasks.filter(task => 
+            !this.claimedTasks.some(claimedTask => claimedTask.id === task.id)
+        );
+
+        if (availableTasks.length === 0) {
+            const noTasksText = window.i18n ? window.i18n.t('tasks.noTasks') : '当前没有可用的任务';
+            tasksContainer.innerHTML = `<p style="text-align: center; color: #666; grid-column: 1 / -1;">${noTasksText}</p>`;
+            return;
+        }
+
+        // 根据当前排序方式排序任务
+        switch (this.currentSortBy) {
+            case 'price-high':
+                availableTasks.sort((a, b) => b.reward - a.reward);
+                break;
+            case 'price-low':
+                availableTasks.sort((a, b) => a.reward - b.reward);
+                break;
+            case 'category':
+                availableTasks.sort((a, b) => a.task_type.localeCompare(b.task_type));
+                break;
+            case 'default':
+            default:
+                // 默认按任务ID排序
+                availableTasks.sort((a, b) => a.id - b.id);
+                break;
+        }
+
+        // 显示排序后的任务
+        availableTasks.forEach(task => {
+            const taskCard = this.createTaskCard(task);
+            tasksContainer.appendChild(taskCard);
+        });
     }
 
     createTaskCard(task) {

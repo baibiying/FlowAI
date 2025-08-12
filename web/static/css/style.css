@@ -547,6 +547,48 @@ body {
     color: #333;
 }
 
+/* 任务市场排序控件 */
+.tasks-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sort-controls label {
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+}
+
+.sort-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: white;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.sort-select:hover {
+    border-color: #007bff;
+}
+
+.sort-select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .header-content {
@@ -585,6 +627,16 @@ body {
     .modal-content {
         width: 95%;
         margin: 10% auto;
+    }
+
+    .tasks-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .sort-controls {
+        justify-content: space-between;
     }
 }
 
