@@ -249,6 +249,7 @@ const i18n = {
             window.flowAIApp.loadTasks();
             window.flowAIApp.loadNetworkInfo();
             window.flowAIApp.updateClaimedTasksDisplay();
+            window.flowAIApp.updateWalletDisplay(); // 更新钱包显示状态
         }
     },
     
@@ -272,13 +273,6 @@ const i18n = {
             if (span) {
                 span.textContent = this.currentLanguage === 'zh' ? 'EN' : '中文';
             }
-        }
-        
-        // 更新钱包连接状态按钮
-        const connectWalletBtn = document.getElementById('connectWallet');
-        if (connectWalletBtn && connectWalletBtn.disabled) {
-            const connectedText = this.t('wallet.connected');
-            connectWalletBtn.textContent = connectedText;
         }
     },
     

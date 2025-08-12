@@ -142,20 +142,33 @@ async def get_available_tasks(lang: str = 'zh'):
         raise HTTPException(status_code=500, detail=f"获取任务列表失败: {str(e)}")
 
 @app.get("/api/tasks/{task_id}", response_model=TaskInfo)
-async def get_task(task_id: int):
+async def get_task(task_id: int, lang: str = 'zh'):
     """获取特定任务详情"""
     try:
         task_data = blockchain_client.get_task(task_id)
         if not task_data:
             raise HTTPException(status_code=404, detail="任务不存在")
         
+        # 处理多语言内容
+        title = task_data['title']
+        description = task_data['description']
+        requirements = task_data.get('requirements', '')
+        
+        # 如果是多语言格式，选择对应语言
+        if isinstance(title, dict):
+            title = title.get(lang, title.get('zh', str(title)))
+        if isinstance(description, dict):
+            description = description.get(lang, description.get('zh', str(description)))
+        if isinstance(requirements, dict):
+            requirements = requirements.get(lang, requirements.get('zh', str(requirements)))
+        
         return TaskInfo(
             id=task_data['id'],
-            title=task_data['title'],
-            description=task_data['description'],
+            title=title,
+            description=description,
             reward=task_data['reward'],
             task_type=task_data.get('taskType', 'general'),
-            requirements=task_data.get('requirements', ''),
+            requirements=requirements,
             deadline=task_data['deadline'],
             publisher=task_data['publisher'],
             is_claimed=task_data['isClaimed'],
@@ -163,6 +176,18 @@ async def get_task(task_id: int):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"获取任务详情失败: {str(e)}")
+
+@app.get("/api/tasks/{task_id}/raw")
+async def get_task_raw(task_id: int):
+    """获取任务的原始多语言数据"""
+    try:
+        task_data = blockchain_client.get_task(task_id)
+        if not task_data:
+            raise HTTPException(status_code=404, detail="任务不存在")
+        
+        return task_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取任务原始数据失败: {str(e)}")
 
 @app.post("/api/tasks/{task_id}/claim")
 async def claim_task(task_id: int):

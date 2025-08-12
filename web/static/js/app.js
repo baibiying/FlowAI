@@ -5,6 +5,33 @@ class FlowAIApp {
         this.currentTask = null;
         this.autoWorkInterval = null;
         this.claimedTasks = [];
+        this.walletConnected = false; // 添加钱包连接状态
+        this.walletAddress = null; // 添加钱包地址
+        
+        // 任务标题的多语言映射
+        this.taskTitleMap = {
+            1: {
+                zh: '编写技术博客文章',
+                en: 'Write Technical Blog Post'
+            },
+            2: {
+                zh: '开发智能合约',
+                en: 'Develop Smart Contract'
+            },
+            3: {
+                zh: '设计UI界面',
+                en: 'Design UI Interface'
+            },
+            4: {
+                zh: '翻译技术文档',
+                en: 'Translate Technical Documentation'
+            },
+            5: {
+                zh: '市场调研报告',
+                en: 'Market Research Report'
+            }
+        };
+        
         this.init();
     }
 
@@ -292,8 +319,22 @@ class FlowAIApp {
             if (response.ok) {
                 this.showNotification('notification.taskClaimed', 'success');
                 
-                // 将认领的任务添加到已认领任务数组
-                this.claimedTasks.push(this.currentTask);
+                // 获取任务的原始多语言数据
+                try {
+                    const rawTaskResponse = await fetch(`${this.apiBase}/tasks/${this.currentTask.id}/raw`);
+                    if (rawTaskResponse.ok) {
+                        const rawTaskData = await rawTaskResponse.json();
+                        // 将原始多语言数据添加到已认领任务数组
+                        this.claimedTasks.push(rawTaskData);
+                    } else {
+                        // 如果获取原始数据失败，使用当前任务数据
+                        this.claimedTasks.push(this.currentTask);
+                    }
+                } catch (error) {
+                    console.error('获取任务原始数据失败:', error);
+                    this.claimedTasks.push(this.currentTask);
+                }
+                
                 this.updateClaimedTasksDisplay();
                 
                 this.closeModal();
@@ -327,7 +368,10 @@ class FlowAIApp {
             const currentLang = window.i18n ? window.i18n.currentLanguage : 'zh';
             let taskTitle = task.title || '未知任务';
             
-            if (typeof task.title === 'object' && task.title[currentLang]) {
+            // 优先使用任务标题映射表
+            if (this.taskTitleMap[task.id] && this.taskTitleMap[task.id][currentLang]) {
+                taskTitle = this.taskTitleMap[task.id][currentLang];
+            } else if (typeof task.title === 'object' && task.title[currentLang]) {
                 taskTitle = task.title[currentLang];
             } else if (typeof task.title === 'string') {
                 taskTitle = task.title;
@@ -416,14 +460,9 @@ class FlowAIApp {
                 const currentLang = window.i18n ? window.i18n.currentLanguage : 'zh';
                 let taskTitle = result.task_title;
                 
-                // 如果当前任务在已认领任务列表中，尝试获取多语言标题
-                const claimedTask = this.claimedTasks.find(task => task.id === result.task_id);
-                if (claimedTask && claimedTask.title) {
-                    if (typeof claimedTask.title === 'object' && claimedTask.title[currentLang]) {
-                        taskTitle = claimedTask.title[currentLang];
-                    } else if (typeof claimedTask.title === 'string') {
-                        taskTitle = claimedTask.title;
-                    }
+                // 使用任务标题映射表获取多语言标题
+                if (this.taskTitleMap[result.task_id] && this.taskTitleMap[result.task_id][currentLang]) {
+                    taskTitle = this.taskTitleMap[result.task_id][currentLang];
                 }
                 
                 // 记录任务认领
@@ -524,6 +563,10 @@ class FlowAIApp {
                 if (accounts.length > 0) {
                     const address = accounts[0];
                     
+                    // 更新应用状态
+                    this.walletConnected = true;
+                    this.walletAddress = address;
+                    
                     // 更新UI显示
                     const accountAddressElement = document.getElementById('accountAddress');
                     const connectWalletElement = document.getElementById('connectWallet');
@@ -549,6 +592,11 @@ class FlowAIApp {
             } else {
                 // 如果没有MetaMask，显示模拟连接
                 const mockAddress = '0x' + Math.random().toString(16).substr(2, 40);
+                
+                // 更新应用状态
+                this.walletConnected = true;
+                this.walletAddress = mockAddress;
+                
                 const accountAddressElement = document.getElementById('accountAddress');
                 const connectWalletElement = document.getElementById('connectWallet');
                 
@@ -583,6 +631,25 @@ class FlowAIApp {
                 this.showNotification('notification.addressCopied', 'success');
                 this.addLogEntry('系统', 'log.addressCopied');
             });
+        }
+    }
+
+    // 更新钱包显示状态
+    updateWalletDisplay() {
+        if (this.walletConnected && this.walletAddress) {
+            // 更新地址显示
+            const accountAddressElement = document.getElementById('accountAddress');
+            if (accountAddressElement) {
+                accountAddressElement.textContent = this.walletAddress;
+            }
+            
+            // 更新连接按钮状态
+            const connectWalletElement = document.getElementById('connectWallet');
+            if (connectWalletElement) {
+                const connectedText = window.i18n ? window.i18n.t('wallet.connected') : '已连接';
+                connectWalletElement.textContent = connectedText;
+                connectWalletElement.disabled = true;
+            }
         }
     }
 
