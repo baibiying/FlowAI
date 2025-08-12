@@ -66,7 +66,7 @@ const i18n = {
         
         // AI Agent
         'agent.title': 'AI Agent控制台',
-        'agent.workMode': '工作模式',
+        'agent.autoExecution': '自动执行',
         'agent.startAutoWork': '启动自动工作',
         'agent.stopAutoWork': '停止自动工作',
         'agent.manualExecution': '手动执行',
@@ -196,7 +196,7 @@ const i18n = {
         
         // AI Agent
         'agent.title': 'AI Agent Console',
-        'agent.workMode': 'Work Mode',
+        'agent.autoExecution': 'Auto Execution',
         'agent.startAutoWork': 'Start Auto Work',
         'agent.stopAutoWork': 'Stop Auto Work',
         'agent.manualExecution': 'Manual Execution',
