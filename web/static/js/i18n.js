@@ -26,6 +26,12 @@ const i18n = {
         'wallet.reputation': '声誉值',
         'wallet.completedTasks': '完成任务',
         'wallet.totalEarnings': '总收入',
+        'wallet.performanceChart': '业绩图表',
+        'wallet.chartEarnings': '收入趋势',
+        'wallet.chartTasks': '任务完成量',
+        'wallet.chartMonth': '月度',
+        'wallet.chartQuarter': '季度',
+        'wallet.chartYear': '年度',
         
         // 仪表板
         'dashboard.title': '仪表板',
@@ -56,6 +62,7 @@ const i18n = {
         'tasks.sortPriceHigh': '价格从高到低',
         'tasks.sortPriceLow': '价格从低到高',
         'tasks.sortCategory': '按类别排序',
+        'wallet.chartDay': '按日',
         
         // AI Agent
         'agent.title': 'AI Agent控制台',
@@ -145,6 +152,12 @@ const i18n = {
         'wallet.reputation': 'Reputation',
         'wallet.completedTasks': 'Completed Tasks',
         'wallet.totalEarnings': 'Total Earnings',
+        'wallet.performanceChart': 'Performance Chart',
+        'wallet.chartEarnings': 'Earnings Trend',
+        'wallet.chartTasks': 'Task Completion',
+        'wallet.chartMonth': 'Monthly',
+        'wallet.chartQuarter': 'Quarterly',
+        'wallet.chartYear': 'Yearly',
         
         // 仪表板
         'dashboard.title': 'Dashboard',
@@ -175,6 +188,7 @@ const i18n = {
         'tasks.sortPriceHigh': 'Price High to Low',
         'tasks.sortPriceLow': 'Price Low to High',
         'tasks.sortCategory': 'By Category',
+        'wallet.chartDay': 'Daily',
         
         // AI Agent
         'agent.title': 'AI Agent Console',
@@ -261,6 +275,7 @@ const i18n = {
             window.flowAIApp.updateClaimedTasksDisplay();
             window.flowAIApp.updateWalletDisplay(); // 更新钱包显示状态
             window.flowAIApp.applySorting(); // 重新应用排序
+            window.flowAIApp.updateChart(); // 更新图表
         }
     },
     

@@ -9,6 +9,9 @@ class FlowAIApp {
         this.walletAddress = null; // 添加钱包地址
         this.currentSortBy = 'default'; // 添加当前排序方式
         this.allTasks = []; // 添加所有任务的缓存
+        this.performanceChart = null; // 添加图表实例
+        this.currentChartType = 'earnings'; // 当前图表类型
+        this.currentTimeRange = 'day'; // 当前时间范围
         
         // 任务标题的多语言映射
         this.taskTitleMap = {
@@ -75,6 +78,23 @@ class FlowAIApp {
                 this.applySorting();
             });
         }
+        
+        // 图表控件事件
+        const chartTypeSelect = document.getElementById('chartType');
+        if (chartTypeSelect) {
+            chartTypeSelect.addEventListener('change', (e) => {
+                this.currentChartType = e.target.value;
+                this.updateChart();
+            });
+        }
+        
+        const timeRangeSelect = document.getElementById('timeRange');
+        if (timeRangeSelect) {
+            timeRangeSelect.addEventListener('change', (e) => {
+                this.currentTimeRange = e.target.value;
+                this.updateChart();
+            });
+        }
 
         // 模态框事件
         const closeBtn = document.querySelector('.close');
@@ -119,6 +139,13 @@ class FlowAIApp {
             link.classList.remove('active');
         });
         document.querySelector(`[href="#${sectionId}"]`).classList.add('active');
+        
+        // 如果切换到钱包页面，初始化图表
+        if (sectionId === 'wallet') {
+            setTimeout(() => {
+                this.initChart();
+            }, 100);
+        }
     }
 
     async loadInitialData() {
@@ -150,6 +177,11 @@ class FlowAIApp {
             document.getElementById('walletReputation').textContent = stats.reputation;
             document.getElementById('walletCompletedTasks').textContent = stats.completed_tasks;
             document.getElementById('walletTotalEarnings').textContent = `${(stats.total_earnings / 1e18).toFixed(4)} ETH`;
+            
+            // 更新图表数据
+            if (this.performanceChart) {
+                this.updateChart();
+            }
         } catch (error) {
             console.error('加载统计信息失败:', error);
         }
@@ -223,8 +255,8 @@ class FlowAIApp {
 
     // 应用排序和显示任务
     applySorting() {
-        const tasksContainer = document.getElementById('tasksList');
-        tasksContainer.innerHTML = '';
+            const tasksContainer = document.getElementById('tasksList');
+            tasksContainer.innerHTML = '';
 
         // 过滤掉已经认领的任务
         let availableTasks = this.allTasks.filter(task => 
@@ -234,8 +266,8 @@ class FlowAIApp {
         if (availableTasks.length === 0) {
             const noTasksText = window.i18n ? window.i18n.t('tasks.noTasks') : '当前没有可用的任务';
             tasksContainer.innerHTML = `<p style="text-align: center; color: #666; grid-column: 1 / -1;">${noTasksText}</p>`;
-            return;
-        }
+                return;
+            }
 
         // 根据当前排序方式排序任务
         switch (this.currentSortBy) {
@@ -257,9 +289,9 @@ class FlowAIApp {
 
         // 显示排序后的任务
         availableTasks.forEach(task => {
-            const taskCard = this.createTaskCard(task);
-            tasksContainer.appendChild(taskCard);
-        });
+                const taskCard = this.createTaskCard(task);
+                tasksContainer.appendChild(taskCard);
+            });
     }
 
     createTaskCard(task) {
@@ -525,6 +557,14 @@ class FlowAIApp {
                 console.log('任务完成，刷新统计数据...');
                 await this.loadStats(); // 等待统计数据刷新完成
                 await this.loadBalance(); // 同时刷新余额
+                
+                // 强制更新图表
+                if (this.performanceChart) {
+                    setTimeout(() => {
+                        this.updateChart();
+                    }, 100);
+                }
+                
                 console.log('统计数据刷新完成');
             } else if (result.status === 'no_tasks') {
                 this.addLogEntry('AI Agent', 'log.noAvailableTasks');
@@ -690,6 +730,184 @@ class FlowAIApp {
                 connectWalletElement.disabled = true;
             }
         }
+    }
+
+    // 初始化图表
+    initChart() {
+        const ctx = document.getElementById('performanceChart');
+        if (!ctx) return;
+
+        this.performanceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: '',
+                    data: [],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+        
+        this.updateChart();
+    }
+
+    // 更新图表数据
+    updateChart() {
+        if (!this.performanceChart) return;
+
+        const data = this.generateChartData();
+        
+        this.performanceChart.data.labels = data.labels;
+        this.performanceChart.data.datasets[0].data = data.values;
+        this.performanceChart.data.datasets[0].label = data.label;
+        
+        this.performanceChart.update();
+    }
+
+    // 生成图表数据
+    generateChartData() {
+        const currentLang = window.i18n ? window.i18n.currentLanguage : 'zh';
+        
+        let labels = [];
+        let values = [];
+        let label = '';
+
+        if (this.currentChartType === 'earnings') {
+            label = currentLang === 'zh' ? '收入 (ETH)' : 'Earnings (ETH)';
+        } else {
+            label = currentLang === 'zh' ? '完成任务数' : 'Tasks Completed';
+        }
+
+        // 获取当前完成的任务数量和收入
+        const completedTasksElement = document.getElementById('completedTasks');
+        const totalEarningsElement = document.getElementById('totalEarnings');
+        
+        let completedTasks = 0;
+        let totalEarnings = 0;
+        
+        if (completedTasksElement) {
+            completedTasks = parseInt(completedTasksElement.textContent) || 0;
+        }
+        
+        if (totalEarningsElement) {
+            const earningsText = totalEarningsElement.textContent;
+            totalEarnings = parseFloat(earningsText.replace(' ETH', '')) || 0;
+        }
+
+        console.log('图表数据 - 完成任务数:', completedTasks, '总收入:', totalEarnings);
+
+        // 获取当前日期
+        const now = new Date();
+        
+        // 根据实际完成情况生成数据
+        switch (this.currentTimeRange) {
+            case 'day':
+                // 生成最近7天的日期，格式：2025/08/12
+                labels = [];
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(now);
+                    date.setDate(date.getDate() - i);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    labels.push(`${year}/${month}/${day}`);
+                }
+                
+                // 所有数据都放在今天（最后一个时间点）
+                if (this.currentChartType === 'earnings') {
+                    values = [0, 0, 0, 0, 0, 0, totalEarnings];
+                } else {
+                    values = [0, 0, 0, 0, 0, 0, completedTasks];
+                }
+                break;
+                
+            case 'month':
+                // 生成最近12个月的日期，格式：2025/08
+                labels = [];
+                for (let i = 11; i >= 0; i--) {
+                    const date = new Date(now);
+                    date.setMonth(date.getMonth() - i);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    labels.push(`${year}/${month}`);
+                }
+                
+                // 所有数据都放在当前月（最后一个时间点）
+                if (this.currentChartType === 'earnings') {
+                    values = new Array(11).fill(0).concat([totalEarnings]);
+                } else {
+                    values = new Array(11).fill(0).concat([completedTasks]);
+                }
+                break;
+                
+            case 'quarter':
+                // 生成最近4个季度的日期，格式：2025/Q1
+                labels = [];
+                for (let i = 3; i >= 0; i--) {
+                    const date = new Date(now);
+                    date.setMonth(date.getMonth() - (i * 3));
+                    const year = date.getFullYear();
+                    const quarter = Math.floor(date.getMonth() / 3) + 1;
+                    labels.push(`${year}/Q${quarter}`);
+                }
+                
+                // 所有数据都放在当前季度（最后一个时间点）
+                if (this.currentChartType === 'earnings') {
+                    values = [0, 0, 0, totalEarnings];
+                } else {
+                    values = [0, 0, 0, completedTasks];
+                }
+                break;
+                
+            case 'year':
+                // 生成最近5年的日期，格式：2025
+                labels = [];
+                for (let i = 4; i >= 0; i--) {
+                    const date = new Date(now);
+                    date.setFullYear(date.getFullYear() - i);
+                    const year = date.getFullYear();
+                    labels.push(`${year}`);
+                }
+                
+                // 所有数据都放在当前年（最后一个时间点）
+                if (this.currentChartType === 'earnings') {
+                    values = new Array(4).fill(0).concat([totalEarnings]);
+                } else {
+                    values = new Array(4).fill(0).concat([completedTasks]);
+                }
+                break;
+        }
+
+        console.log('生成的图表数据:', { labels, values, label });
+        return { labels, values, label };
     }
 
     addLogEntry(time, message, params = {}) {

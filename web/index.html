@@ -229,6 +229,27 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="wallet-chart-section">
+                    <div class="chart-controls">
+                        <h3 data-i18n="wallet.performanceChart">业绩图表</h3>
+                        <div class="chart-options">
+                            <select id="chartType" class="chart-select">
+                                <option value="earnings" data-i18n="wallet.chartEarnings">收入趋势</option>
+                                <option value="tasks" data-i18n="wallet.chartTasks">任务完成量</option>
+                            </select>
+                            <select id="timeRange" class="chart-select">
+                                <option value="day" data-i18n="wallet.chartDay">按日</option>
+                                <option value="month" data-i18n="wallet.chartMonth">月度</option>
+                                <option value="quarter" data-i18n="wallet.chartQuarter">季度</option>
+                                <option value="year" data-i18n="wallet.chartYear">年度</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
             </section>
         </main>
 
@@ -260,6 +281,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/static/js/i18n.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
